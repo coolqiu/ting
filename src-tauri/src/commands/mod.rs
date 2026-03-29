@@ -1,0 +1,10 @@
+pub mod ai_commands;
+pub mod audio_commands;
+pub mod auth_commands;
+pub mod download_commands;
+pub mod progress_commands;
+pub mod pronunciation_commands;
+pub mod settings_commands;
+pub mod speaking_commands;
+pub mod study_commands;
+pub mod system_commands;

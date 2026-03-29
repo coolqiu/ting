@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(powershell -Command \"Get-ChildItem -Recurse ''d:\\\\Projects\\\\listenMate++\\\\tests''\")",
+      "Bash(powershell -Command \"cd ''d:\\\\Projects\\\\listenMate++\\\\tests''; dir\")",
+      "Bash(dir \"e:\\\\projects\\\\listenMate++\\\\src-tauri\")",
+      "Bash(dir:*)",
+      "Bash(cargo tauri android build:*)",
+      "Bash(cmd /c run_build.bat)"
+    ]
+  }
+}

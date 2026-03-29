@@ -1,0 +1,7 @@
+[env]
+AWS_LC_SYS_NO_ASM = "1"
+ANDROID_NDK_HOME = "D:/android_sdk/ndk/26.3.11579264"
+NDK_HOME = "D:/android_sdk/ndk/26.3.11579264"
+
+[target.aarch64-linux-android]
+linker = "D:/android_sdk/ndk/26.3.11579264/toolchains/llvm/prebuilt/windows-x86_64/bin/aarch64-linux-android21-clang.cmd"

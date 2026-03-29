@@ -1,0 +1,270 @@
+       Fresh zeroize v1.8.2
+       Fresh windows-link v0.2.1
+       Fresh bytes v1.11.1
+       Fresh base64ct v1.8.3
+       Fresh itoa v1.0.17
+warning: httparse@1.10.1: building for no_std disables httparse SIMD
+       Fresh windows-sys v0.61.2
+       Fresh httparse v1.10.1
+       Fresh rustls-pki-types v1.14.0
+       Fresh pem-rfc7468 v0.7.0
+       Fresh http v1.4.0
+       Fresh log v0.4.29
+       Fresh schannel v0.1.28
+warning: field `1` is never read
+  --> C:\Users\qyf\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\schannel-0.1.28\src\cert_chain.rs:70:60
+   |
+70 | ...ct CertChain(*mut Cryptography::CERT_SIMPLE_CHAIN, CertChainContext);
+   |       --------- field in this struct                  ^^^^^^^^^^^^^^^^
+   |
+   = help: consider removing this field
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: hiding a lifetime that's elided elsewhere is confusing
+  --> C:\Users\qyf\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\schannel-0.1.28\src\cert_chain.rs:61:19
+   |
+61 |     pub fn chains(&self) -> CertificateChains {
+   |                   ^^^^^     ^^^^^^^^^^^^^^^^^ the same lifetime is hidden here
+   |                   |
+   |                   the lifetime is elided here
+   |
+   = help: the same lifetime is referred to in inconsistent ways, making the signature confusing
+   = note: `#[warn(mismatched_lifetime_syntaxes)]` on by default
+help: use `'_` for type paths
+   |
+61 |     pub fn chains(&self) -> CertificateChains<'_> {
+   |                                              ++++
+
+warning: hiding a lifetime that's elided elsewhere is confusing
+   --> C:\Users\qyf\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\schannel-0.1.28\src\cert_chain.rs:101:25
+    |
+101 |     pub fn certificates(&self) -> Certificates {
+    |                         ^^^^^     ^^^^^^^^^^^^ the same lifetime is hidden here
+    |                         |
+    |                         the lifetime is elided here
+    |
+    = help: the same lifetime is referred to in inconsistent ways, making the signature confusing
+help: use `'_` for type paths
+    |
+101 |     pub fn certificates(&self) -> Certificates<'_> {
+    |                                               ++++
+
+warning: hiding a lifetime that's elided elsewhere is confusing
+   --> C:\Users\qyf\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\schannel-0.1.28\src\cert_context.rs:299:24
+    |
+299 | ...ey(&self) -> AcquirePrivateKeyOptions {
+    |       ^^^^^     ^^^^^^^^^^^^^^^^^^^^^^^^ the same lifetime is hidden here
+    |       |
+    |       the lifetime is elided here
+    |
+    = help: the same lifetime is referred to in inconsistent ways, making the signature confusing
+help: use `'_` for type paths
+    |
+299 |     pub fn private_key(&self) -> AcquirePrivateKeyOptions<'_> {
+    |                                                          ++++
+
+warning: hiding a lifetime that's elided elsewhere is confusing
+   --> C:\Users\qyf\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\schannel-0.1.28\src\cert_context.rs:320:30
+    |
+320 | ...v_info(&self) -> SetKeyProvInfo {
+    |           ^^^^^     ^^^^^^^^^^^^^^ the same lifetime is hidden here
+    |           |
+    |           the lifetime is elided here
+    |
+    = help: the same lifetime is referred to in inconsistent ways, making the signature confusing
+help: use `'_` for type paths
+    |
+320 |     pub fn set_key_prov_info(&self) -> SetKeyProvInfo<'_> {
+    |                                                      ++++
+
+warning: hiding a lifetime that's elided elsewhere is confusing
+   --> C:\Users\qyf\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\schannel-0.1.28\src\cert_store.rs:185:18
+    |
+185 |     pub fn certs(&self) -> Certs {
+    |                  ^^^^^     ^^^^^ the same lifetime is hidden here
+    |                  |
+    |                  the lifetime is elided here
+    |
+    = help: the same lifetime is referred to in inconsistent ways, making the signature confusing
+help: use `'_` for type paths
+    |
+185 |     pub fn certs(&self) -> Certs<'_> {
+    |                                 ++++
+
+warning: hiding a lifetime that's elided elsewhere is confusing
+  --> C:\Users\qyf\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\schannel-0.1.28\src\crypt_prov.rs:28:19
+   |
+28 |     pub fn import(&mut self) -> ImportOptions {
+   |                   ^^^^^^^^^     ^^^^^^^^^^^^^ the same lifetime is hidden here
+   |                   |
+   |                   the lifetime is elided here
+   |
+   = help: the same lifetime is referred to in inconsistent ways, making the signature confusing
+help: use `'_` for type paths
+   |
+28 |     pub fn import(&mut self) -> ImportOptions<'_> {
+   |                                              ++++
+
+       Fresh winapi v0.3.9
+warning: rule #3 of macro `FN` is never used
+   --> C:\Users\qyf\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\winapi-0.3.9\src\macros.rs:414:5
+    |
+414 |     (cdecl $func:ident($($t:ty,)*) -> $ret:ty) => (
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+note: the lint level is defined here
+   --> C:\Users\qyf\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\winapi-0.3.9\src\lib.rs:7:9
+    |
+  7 | #![deny(unused, unused_qualifications)]
+    |         ^^^^^^
+    = note: `#[warn(unused_macro_rules)]` implied by `#[warn(unused)]`
+
+warning: unnecessary transmute
+   --> C:\Users\qyf\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\winapi-0.3.9\src\um\winsock2.rs:878:38
+    |
+878 | ...fe { ::core::mem::transmute(Value) };
+    |         ----------------------^^^^^^^
+    |         |
+    |         help: replace this with: `f32::to_bits`
+    |
+    = note: `#[warn(unnecessary_transmutes)]` on by default
+
+warning: unnecessary transmute
+   --> C:\Users\qyf\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\winapi-0.3.9\src\um\winsock2.rs:884:14
+    |
+884 |     unsafe { ::core::mem::transmute(Tempval) }
+    |              ----------------------^^^^^^^^^
+    |              |
+    |              help: replace this with: `f32::from_bits`
+
+warning: unnecessary transmute
+   --> C:\Users\qyf\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\winapi-0.3.9\src\um\winsock2.rs:888:38
+    |
+888 | ...fe { ::core::mem::transmute(Value) };
+    |         ----------------------^^^^^^^
+    |         |
+    |         help: replace this with: `f64::to_bits`
+
+warning: unnecessary transmute
+   --> C:\Users\qyf\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\winapi-0.3.9\src\um\winsock2.rs:894:14
+    |
+894 |     unsafe { ::core::mem::transmute(Tempval) }
+    |              ----------------------^^^^^^^^^
+    |              |
+    |              help: replace this with: `f64::from_bits`
+
+       Fresh base64 v0.22.1
+warning: unexpected `cfg` condition value: `cargo-clippy`
+   --> C:\Users\qyf\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\base64-0.22.1\src\lib.rs:223:13
+    |
+223 | #![cfg_attr(feature = "cargo-clippy", allow(cli...
+    |             ^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: expected values for `feature` are: `alloc`, `default`, and `std`
+    = help: consider adding `cargo-clippy` as a feature in `Cargo.toml`
+    = note: see <https://doc.rust-lang.org/nightly/rustc/check-cfg/cargo-specifics.html> for more information about checking conditional configuration
+    = note: `#[warn(unexpected_cfgs)]` on by default
+
+warning: hiding a lifetime that's elided elsewhere is confusing
+  --> C:\Users\qyf\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\base64-0.22.1\src\chunked_encoder.rs:57:26
+   |
+57 | ...new(s: &mut String) -> StringSink {
+   |           ^^^^^^^^^^^     ^^^^^^^^^^ the same lifetime is hidden here
+   |           |
+   |           the lifetime is elided here
+   |
+   = help: the same lifetime is referred to in inconsistent ways, making the signature confusing
+   = note: `#[warn(mismatched_lifetime_syntaxes)]` on by default
+help: use `'_` for type paths
+   |
+57 |     pub(crate) fn new(s: &mut String) -> StringSink<'_> {
+   |                                                    ++++
+
+       Fresh byteorder v1.5.0
+       Fresh der v0.7.10
+warning: unexpected `cfg` condition value: `bigint`
+   --> C:\Users\qyf\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\der-0.7.10\src\lib.rs:373:7
+    |
+373 | #[cfg(feature = "bigint")]
+    |       ^^^^^^^^^^^^^^^^^^
+    |
+    = note: expected values for `feature` are: `alloc`, `arbitrary`, `bytes`, `derive`, `flagset`, `oid`, `pem`, `real`, `std`, `time`, and `zeroize`
+    = help: consider adding `bigint` as a feature in `Cargo.toml`
+    = note: see <https://doc.rust-lang.org/nightly/rustc/check-cfg/cargo-specifics.html> for more information about checking conditional configuration
+    = note: `#[warn(unexpected_cfgs)]` on by default
+
+warning: unnecessary qualification
+  --> C:\Users\qyf\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\der-0.7.10\src\asn1\integer.rs:25:19
+   |
+25 |     debug_assert!(mem::size_of::<T>() <= MAX_INT...
+   |                   ^^^^^^^^^^^^^^^^^
+   |
+note: the lint level is defined here
+  --> C:\Users\qyf\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\der-0.7.10\src\lib.rs:25:5
+   |
+25 |     unused_qualifications
+   |     ^^^^^^^^^^^^^^^^^^^^^
+help: remove the unnecessary path segments
+   |
+25 -     debug_assert!(mem::size_of::<T>() <= MAX_INT_SIZE);
+25 +     debug_assert!(size_of::<T>() <= MAX_INT_SIZE);
+   |
+
+       Fresh webpki-root-certs v1.0.6
+       Fresh utf-8 v0.7.6
+warning: hiding a lifetime that's elided elsewhere is confusing
+  --> C:\Users\qyf\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\utf-8-0.7.6\src\lib.rs:71:22
+   |
+71 | ...put: &[u8]) -> Result<&str, DecodeError> {
+   |         ^^^^^            ^^^^  ^^^^^^^^^^^ the same lifetime is hidden here
+   |         |                |
+   |         |                the same lifetime is elided here
+   |         the lifetime is elided here
+   |
+   = help: the same lifetime is referred to in inconsistent ways, making the signature confusing
+   = note: `#[warn(mismatched_lifetime_syntaxes)]` on by default
+help: use `'_` for type paths
+   |
+71 | pub fn decode(input: &[u8]) -> Result<&str, DecodeError<'_>> {
+   |                                                        ++++
+
+warning: hiding a lifetime that's elided elsewhere is confusing
+  --> C:\Users\qyf\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\utf-8-0.7.6\src\read.rs:87:24
+   |
+87 | ...ct(&mut self) -> Option<Result<&str, BufReadDecoderError>> {
+   |       ^^^^^^^^^                   ^^^^  ^^^^^^^^^^^^^^^^^^^ the same lifetime is hidden here
+   |       |                           |
+   |       |                           the same lifetime is elided here
+   |       the lifetime is elided here
+   |
+   = help: the same lifetime is referred to in inconsistent ways, making the signature confusing
+help: use `'_` for type paths
+   |
+87 |     pub fn next_strict(&mut self) -> Option<Result<&str, BufReadDecoderError<'_>>> {
+   |                                                                             ++++
+
+       Fresh percent-encoding v2.3.2
+warning: `schannel` (lib) generated 7 warnings
+warning: `winapi` (lib) generated 5 warnings
+warning: `base64` (lib) generated 2 warnings
+warning: `der` (lib) generated 2 warnings
+warning: `utf-8` (lib) generated 2 warnings
+       Fresh ureq-proto v0.5.3
+       Fresh native-tls v0.2.18
+       Fresh socks v0.3.4
+       Fresh lzma-rust2 v0.15.7
+       Fresh hmac-sha256 v1.1.14
+       Fresh ureq v3.2.0
+   Compiling ort-sys v2.0.0-rc.11
+     Running `set AWS_LC_SYS_NO_ASM=1&& set CARGO=C:\Users\qyf\.rustup\toolchains\stable-x86_64-pc-windows-msvc\bin\cargo.exe&& set CARGO_CFG_DEBUG_ASSERTIONS=""&& set CARGO_CFG_FEATURE=__tls,copy-dylibs,download-binaries,std,tls-native&& set CARGO_CFG_PANIC=unwind&& set CARGO_CFG_TARGET_ABI=""&& set CARGO_CFG_TARGET_ARCH=aarch64&& set CARGO_CFG_TARGET_ENDIAN=little&& set CARGO_CFG_TARGET_ENV=""&& set CARGO_CFG_TARGET_FAMILY=unix&& set CARGO_CFG_TARGET_FEATURE=neon&& set CARGO_CFG_TARGET_HAS_ATOMIC=128,16,32,64,8,ptr&& set CARGO_CFG_TARGET_OS=android&& set CARGO_CFG_TARGET_POINTER_WIDTH=64&& set CARGO_CFG_TARGET_VENDOR=unknown&& set CARGO_CFG_UNIX=""&& set CARGO_ENCODED_RUSTFLAGS=""&& set CARGO_FEATURE_COPY_DYLIBS=1&& set CARGO_FEATURE_DOWNLOAD_BINARIES=1&& set CARGO_FEATURE_STD=1&& set CARGO_FEATURE_TLS_NATIVE=1&& set CARGO_FEATURE___TLS=1&& set CARGO_MANIFEST_DIR=C:\Users\qyf\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\ort-sys-2.0.0-rc.11&& set CARGO_MANIFEST_LINKS=onnxruntime&& set CARGO_MANIFEST_PATH=C:\Users\qyf\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\ort-sys-2.0.0-rc.11\Cargo.toml&& set CARGO_PKG_AUTHORS="pyke.io <contact@pyke.io>"&& set CARGO_PKG_DESCRIPTION="Unsafe Rust bindings for ONNX Runtime 1.23 - Optimize and Accelerate Machine Learning Inferencing"&& set CARGO_PKG_HOMEPAGE=https://ort.pyke.io/&& set CARGO_PKG_LICENSE="MIT OR Apache-2.0"&& set CARGO_PKG_LICENSE_FILE=""&& set CARGO_PKG_NAME=ort-sys&& set CARGO_PKG_README=""&& set CARGO_PKG_REPOSITORY=https://github.com/pykeio/ort&& set CARGO_PKG_RUST_VERSION=1.88&& set CARGO_PKG_VERSION=2.0.0-rc.11&& set CARGO_PKG_VERSION_MAJOR=2&& set CARGO_PKG_VERSION_MINOR=0&& set CARGO_PKG_VERSION_PATCH=0&& set CARGO_PKG_VERSION_PRE=rc.11&& set DEBUG=true&& set HOST=x86_64-pc-windows-msvc&& set NUM_JOBS=8&& set OPT_LEVEL=0&& set OUT_DIR=E:\projects\listenMate++\src-tauri\target\aarch64-linux-android\debug\build\ort-sys-9a0effa6b6074899\out&& set PATH="E:\projects\listenMate++\src-tauri\target\debug;E:\projects\listenMate++\src-tauri\target\debug\deps;C:\Users\qyf\.rustup\toolchains\stable-x86_64-pc-windows-msvc\lib\rustlib\x86_64-pc-windows-msvc\lib;C:\Program Files\PowerShell\7;D:\android_sdk\platform-tools;D:\project\vcpkg\installed\x64-windows\debug\bin;D:\project\vcpkg\installed\x64-windows\bin;D:\Program Files\LLVM\bin;C:\Program Files\Common Files\Oracle\Java\javapath;D:\Python313\Scripts\;D:\Python313\;C:\Program Files (x86)\Intel\Intel(R) Management Engine Components\iCLS\;C:\Program Files\Intel\Intel(R) Management Engine Components\iCLS\;C:\Windows\system32;C:\Windows;C:\Windows\System32\Wbem;C:\Windows\System32\WindowsPowerShell\v1.0\;C:\Program Files (x86)\Intel\Intel(R) Management Engine Components\DAL;C:\Program Files\Intel\Intel(R) Management Engine Components\DAL;C:\Program Files (x86)\Intel\Intel(R) Management Engine Components\IPT;C:\Program Files\Intel\Intel(R) Management Engine Components\IPT;C:\Program Files\Intel\WiFi\bin\;C:\Program Files\Common Files\Intel\WirelessCommon\;C:\WINDOWS\system32;C:\WINDOWS;C:\WINDOWS\System32\Wbem;C:\WINDOWS\System32\WindowsPowerShell\v1.0\;C:\WINDOWS\System32\OpenSSH\;D:\cygwin64\mingw64\bin;D:\Program Files\CMake\bin;D:\cygwin64\mingw64\x64\mingw\bin;d:\project\vcpkg;C:\ProgramData\chocolatey\bin;D:\project\nodejs\;D:\apache-maven-3.9.11\bin;D:\java\jdk-24.0.1\bin;C:\Python313;D:\apache-maven-3.9.11\bin;D:\Program Files\xmake;D:\projects\Strawberry\c\bin;D:\projects\Strawberry\perl\site\bin;D:\projects\Strawberry\perl\bin;C:\Program Files\NVIDIA Corporation\Nsight Compute 2025.3.1\;D:\Program Files (x86)\NSIS;D:\Program Files (x86)\PowerShell\7\;C:\Program Files\PowerShell\7\;D:\Program Files\Amazon\AWSCLIV2\;C:\Program Files (x86)\Windows Kits\10\Tools\10.0.26100.0\x64;C:\Program Files (x86)\Windows Kits\10\Windows Performance Toolkit\;C:\Program Files\Tailscale\;C:\Program Files\PuTTY\;d:\Program Files\Git\cmd;D:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\Llvm\x64\bin;C:\Users\qyf\.cargo\bin;D:\Qt\6.9.2\msvc2022_64\bin;D:\project\vcpkg\installed\x64-windows\bin;D:\project\vcpkg\installed\x64-windows\debug\bin;C:\Users\qyf\AppData\Local\Programs\Python\Python313\Scripts\;C:\Users\qyf\AppData\Local\Programs\Python\Python313\;C:\Users\qyf\AppData\Local\Programs\Python\Launcher\;C:\Users\qyf\AppData\Local\Microsoft\WindowsApps;D:\cygwin64\mingw64\bin;D:\cygwin64\mingw64\x64\mingw\bin;d:\project\vcpkg;C:\Users\qyf\AppData\Roaming\npm;C:\Python313;%IntelliJ IDEA%;D:\Program Files\JetBrains\WebStorm 2024.1.5\bin;;D:\apache-maven-3.9.11\bin;D:\Temp\flutter\bin;D:\Program Files (x86)\NSIS;C:\Program Files (x86)\Windows Kits\10\Tools\10.0.26100.0\x64;D:\Antigravity\bin;D:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\Llvm\x64\bin;C:\Users\qyf\AppData\Local\Microsoft\WinGet\Packages\Gyan.FFmpeg_Microsoft.Winget.Source_8wekyb3d8bbwe\ffmpeg-8.0.1-full_build\bin;D:\android_sdk\platform-tools;;C:\Users\qyf\.rustup\toolchains\stable-x86_64-pc-windows-msvc\bin"&& set PROFILE=debug&& set RUSTC=C:\Users\qyf\.rustup\toolchains\stable-x86_64-pc-windows-msvc\bin\rustc.exe&& set RUSTC_LINKER=D:/android_sdk/ndk/26.3.11579264/toolchains/llvm/prebuilt/windows-x86_64/bin/aarch64-linux-android21-clang.cmd&& set RUSTDOC=C:\Users\qyf\.rustup\toolchains\stable-x86_64-pc-windows-msvc\bin\rustdoc.exe&& set TARGET=aarch64-linux-android&& E:\projects\listenMate++\src-tauri\target\debug\build\ort-sys-a9d1a2e7c63e8f59\build-script-main`
+[ort-sys 2.0.0-rc.11] cargo:rustc-check-cfg=cfg(link_error)
+[ort-sys 2.0.0-rc.11] cargo:rerun-if-env-changed=ORT_LIB_LOCATION
+[ort-sys 2.0.0-rc.11] cargo:rerun-if-env-changed=ORT_PREFER_DYNAMIC_LINK
+[ort-sys 2.0.0-rc.11] cargo:rerun-if-env-changed=ORT_LIB_PROFILE
+[ort-sys 2.0.0-rc.11] cargo:rustc-link-search=native=E:\projects\listenMate++\src-tauri\ort_libs
+[ort-sys 2.0.0-rc.11] [ort-sys] [DEBUG] doing full static linking since no single-file library was found
+[ort-sys 2.0.0-rc.11] cargo::error=ort-sys could not link to the ONNX Runtime build in `E:\projects\listenMate++\src-tauri\ort_libs`
+[ort-sys 2.0.0-rc.11] cargo::error= | rerun the build with `cargo build -vv | grep ort-sys` to see debug messages
+error: ort-sys@2.0.0-rc.11: ort-sys could not link to the ONNX Runtime build in `E:\projects\listenMate++\src-tauri\ort_libs`
+error: ort-sys@2.0.0-rc.11:  | rerun the build with `cargo build -vv | grep ort-sys` to see debug messages
+error: build script logged errors

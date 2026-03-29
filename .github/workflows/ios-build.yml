@@ -1,0 +1,58 @@
+name: iOS Build
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build-ios:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+          cache: 'npm'
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-apple-ios, x86_64-apple-ios, aarch64-apple-ios-sim
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Check Tauri version
+        run: npm run tauri -- --version
+
+      - name: Install iOS dependencies (CocoaPods)
+        run: |
+          # This step ensures CocoaPods are installed if the project was already initialized
+          # Note: If this is the first time, tauri ios init will handle it.
+          echo "Checking for CocoaPods..."
+
+      - name: Initialize iOS project (if needed)
+        run: |
+          if [ ! -d "src-tauri/gen/apple" ]; then
+            npm run tauri ios init
+          fi
+
+      - name: Build iOS App (Unsigned Debug)
+        run: npm run tauri ios build -- --debug
+        env:
+          CODE_SIGNING_ALLOWED: NO
+          CODE_SIGNING_REQUIRED: NO
+          CODE_SIGN_IDENTITY: ""
+          PROVISIONING_PROFILE_SPECIFIER: ""
+          AD_HOC_CODE_SIGNING_ALLOWED: YES
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-app
+          path: src-tauri/gen/apple/build/Build/Products/Debug-iphoneos/*.app

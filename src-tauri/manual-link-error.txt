@@ -1,0 +1,977 @@
+error[E0432]: unresolved import `futures_util`
+ --> E:\projects\listenMate++\src-tauri\src\ai\model_manager.rs:1:5
+  |
+1 | use futures_util::StreamExt;
+  |     ^^^^^^^^^^^^ use of unresolved module or unlinked crate `futures_util`
+  |
+  = help: you might be missing a crate named `futures_util`
+
+error[E0432]: unresolved import `reqwest`
+ --> E:\projects\listenMate++\src-tauri\src\ai\model_manager.rs:2:5
+  |
+2 | use reqwest::Client;
+  |     ^^^^^^^ use of unresolved module or unlinked crate `reqwest`
+  |
+  = help: you might be missing a crate named `reqwest`
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `tokio`
+ --> E:\projects\listenMate++\src-tauri\src\ai\model_manager.rs:5:5
+  |
+5 | use tokio::fs::File;
+  |     ^^^^^ use of unresolved module or unlinked crate `tokio`
+  |
+  = help: you might be missing a crate named `tokio`
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `tokio`
+ --> E:\projects\listenMate++\src-tauri\src\ai\model_manager.rs:6:5
+  |
+6 | use tokio::io::AsyncWriteExt;
+  |     ^^^^^ use of unresolved module or unlinked crate `tokio`
+  |
+  = help: you might be missing a crate named `tokio`
+
+error[E0432]: unresolved import `tauri`
+ --> E:\projects\listenMate++\src-tauri\src\ai\model_manager.rs:4:5
+  |
+4 | use tauri::{AppHandle, Emitter, Manager};
+  |     ^^^^^ use of unresolved module or unlinked crate `tauri`
+  |
+  = help: you might be missing a crate named `tauri`
+
+error[E0432]: unresolved import `hound`
+ --> E:\projects\listenMate++\src-tauri\src\ai\pronunciation_evaluator.rs:2:5
+  |
+2 | use hound::WavReader;
+  |     ^^^^^ use of unresolved module or unlinked crate `hound`
+  |
+  = help: you might be missing a crate named `hound`
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `ort`
+ --> E:\projects\listenMate++\src-tauri\src\ai\pronunciation_evaluator.rs:4:5
+  |
+4 | use ort::session::builder::SessionBuilder;
+  |     ^^^ use of unresolved module or unlinked crate `ort`
+  |
+  = help: you might be missing a crate named `ort`
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `ort`
+ --> E:\projects\listenMate++\src-tauri\src\ai\pronunciation_evaluator.rs:5:5
+  |
+5 | use ort::session::Session;
+  |     ^^^ use of unresolved module or unlinked crate `ort`
+  |
+  = help: you might be missing a crate named `ort`
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `ort`
+ --> E:\projects\listenMate++\src-tauri\src\ai\pronunciation_evaluator.rs:6:5
+  |
+6 | use ort::value::Value;
+  |     ^^^ use of unresolved module or unlinked crate `ort`
+  |
+  = help: you might be missing a crate named `ort`
+
+error[E0432]: unresolved import `ndarray`
+ --> E:\projects\listenMate++\src-tauri\src\ai\pronunciation_evaluator.rs:3:5
+  |
+3 | use ndarray::Array2;
+  |     ^^^^^^^ use of unresolved module or unlinked crate `ndarray`
+  |
+  = help: you might be missing a crate named `ndarray`
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `rodio`
+ --> E:\projects\listenMate++\src-tauri\src\ai\whisper_engine.rs:2:5
+  |
+2 | use rodio::{source::UniformSourceIterator, Decoder, Source};
+  |     ^^^^^ use of unresolved module or unlinked crate `rodio`
+  |
+  = help: you might be missing a crate named `rodio`
+
+error[E0432]: unresolved import `serde`
+ --> E:\projects\listenMate++\src-tauri\src\ai\pronunciation_evaluator.rs:7:5
+  |
+7 | use serde::Serialize;
+  |     ^^^^^ use of unresolved module or unlinked crate `serde`
+  |
+  = help: you might be missing a crate named `serde`
+
+error[E0432]: unresolved import `rodio`
+ --> E:\projects\listenMate++\src-tauri\src\ai\whisper_engine.rs:2:5
+  |
+2 | use rodio::{source::UniformSourceIterator, Decoder, Source};
+  |     ^^^^^ use of unresolved module or unlinked crate `rodio`
+  |
+  = help: you might be missing a crate named `rodio`
+
+error[E0432]: unresolved import `rodio`
+ --> E:\projects\listenMate++\src-tauri\src\audio\engine.rs:2:5
+  |
+2 | use rodio::{Decoder, OutputStream, Sink, Source};
+  |     ^^^^^ use of unresolved module or unlinked crate `rodio`
+  |
+  = help: you might be missing a crate named `rodio`
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `symphonia`
+  --> E:\projects\listenMate++\src-tauri\src\audio\engine.rs:11:5
+   |
+11 | use symphonia::core::formats::FormatOptions;
+   |     ^^^^^^^^^ use of unresolved module or unlinked crate `symphonia`
+   |
+   = help: you might be missing a crate named `symphonia`
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `symphonia`
+  --> E:\projects\listenMate++\src-tauri\src\audio\engine.rs:12:5
+   |
+12 | use symphonia::core::io::MediaSourceStream;
+   |     ^^^^^^^^^ use of unresolved module or unlinked crate `symphonia`
+   |
+   = help: you might be missing a crate named `symphonia`
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `symphonia`
+  --> E:\projects\listenMate++\src-tauri\src\audio\engine.rs:13:5
+   |
+13 | use symphonia::core::meta::MetadataOptions;
+   |     ^^^^^^^^^ use of unresolved module or unlinked crate `symphonia`
+   |
+   = help: you might be missing a crate named `symphonia`
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `symphonia`
+  --> E:\projects\listenMate++\src-tauri\src\audio\engine.rs:14:5
+   |
+14 | use symphonia::core::probe::Hint;
+   |     ^^^^^^^^^ use of unresolved module or unlinked crate `symphonia`
+   |
+   = help: you might be missing a crate named `symphonia`
+
+error[E0432]: unresolved import `serde`
+ --> E:\projects\listenMate++\src-tauri\src\audio\engine.rs:3:5
+  |
+3 | use serde::{Deserialize, Serialize};
+  |     ^^^^^ use of unresolved module or unlinked crate `serde`
+  |
+  = help: you might be missing a crate named `serde`
+
+error[E0432]: unresolved import `rodio`
+ --> E:\projects\listenMate++\src-tauri\src\audio\sonic.rs:1:5
+  |
+1 | use rodio::Source;
+  |     ^^^^^ use of unresolved module or unlinked crate `rodio`
+  |
+  = help: you might be missing a crate named `rodio`
+
+error[E0432]: unresolved import `tauri`
+ --> E:\projects\listenMate++\src-tauri\src\commands\ai_commands.rs:5:5
+  |
+5 | use tauri::{command, AppHandle, Emitter, State};
+  |     ^^^^^ use of unresolved module or unlinked crate `tauri`
+  |
+  = help: you might be missing a crate named `tauri`
+
+error[E0432]: unresolved import `tauri`
+ --> E:\projects\listenMate++\src-tauri\src\commands\audio_commands.rs:4:5
+  |
+4 | use tauri::State;
+  |     ^^^^^ use of unresolved module or unlinked crate `tauri`
+  |
+  = help: you might be missing a crate named `tauri`
+
+error[E0432]: unresolved import `tauri`
+ --> E:\projects\listenMate++\src-tauri\src\commands\auth_commands.rs:3:5
+  |
+3 | use tauri::State;
+  |     ^^^^^ use of unresolved module or unlinked crate `tauri`
+  |
+  = help: you might be missing a crate named `tauri`
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `tauri_plugin_shell`
+ --> E:\projects\listenMate++\src-tauri\src\commands\download_commands.rs:2:5
+  |
+2 | use tauri_plugin_shell::process::Command;
+  |     ^^^^^^^^^^^^^^^^^^ use of unresolved module or unlinked crate `tauri_plugin_shell`
+  |
+  = help: you might be missing a crate named `tauri_plugin_shell`
+
+error[E0432]: unresolved import `tauri`
+ --> E:\projects\listenMate++\src-tauri\src\commands\download_commands.rs:1:5
+  |
+1 | use tauri::AppHandle;
+  |     ^^^^^ use of unresolved module or unlinked crate `tauri`
+  |
+  = help: you might be missing a crate named `tauri`
+
+error[E0432]: unresolved import `tauri_plugin_shell`
+ --> E:\projects\listenMate++\src-tauri\src\commands\download_commands.rs:3:5
+  |
+3 | use tauri_plugin_shell::ShellExt;
+  |     ^^^^^^^^^^^^^^^^^^ use of unresolved module or unlinked crate `tauri_plugin_shell`
+  |
+  = help: you might be missing a crate named `tauri_plugin_shell`
+
+error[E0432]: unresolved import `tauri`
+ --> E:\projects\listenMate++\src-tauri\src\commands\download_commands.rs:4:5
+  |
+4 | use tauri::{Emitter, Manager};
+  |     ^^^^^ use of unresolved module or unlinked crate `tauri`
+  |
+  = help: you might be missing a crate named `tauri`
+
+error[E0432]: unresolved import `tauri`
+ --> E:\projects\listenMate++\src-tauri\src\commands\progress_commands.rs:6:5
+  |
+6 | use tauri::State;
+  |     ^^^^^ use of unresolved module or unlinked crate `tauri`
+  |
+  = help: you might be missing a crate named `tauri`
+
+error[E0432]: unresolved import `tauri`
+ --> E:\projects\listenMate++\src-tauri\src\commands\pronunciation_commands.rs:6:5
+  |
+6 | use tauri::{command, AppHandle, Manager, State};
+  |     ^^^^^ use of unresolved module or unlinked crate `tauri`
+  |
+  = help: you might be missing a crate named `tauri`
+
+error[E0432]: unresolved import `chrono`
+ --> E:\projects\listenMate++\src-tauri\src\commands\settings_commands.rs:2:5
+  |
+2 | use chrono::Utc;
+  |     ^^^^^^ use of unresolved module or unlinked crate `chrono`
+  |
+  = help: you might be missing a crate named `chrono`
+
+error[E0432]: unresolved import `tauri`
+ --> E:\projects\listenMate++\src-tauri\src\commands\settings_commands.rs:5:5
+  |
+5 | use tauri::AppHandle;
+  |     ^^^^^ use of unresolved module or unlinked crate `tauri`
+  |
+  = help: you might be missing a crate named `tauri`
+
+error[E0432]: unresolved import `tauri`
+ --> E:\projects\listenMate++\src-tauri\src\commands\settings_commands.rs:6:5
+  |
+6 | use tauri::Manager;
+  |     ^^^^^ use of unresolved module or unlinked crate `tauri`
+  |
+  = help: you might be missing a crate named `tauri`
+
+error[E0432]: unresolved import `tauri`
+ --> E:\projects\listenMate++\src-tauri\src\commands\settings_commands.rs:7:5
+  |
+7 | use tauri::State;
+  |     ^^^^^ use of unresolved module or unlinked crate `tauri`
+  |
+  = help: you might be missing a crate named `tauri`
+
+error[E0432]: unresolved import `serde`
+ --> E:\projects\listenMate++\src-tauri\src\commands\speaking_commands.rs:6:5
+  |
+6 | use serde::{Deserialize, Serialize};
+  |     ^^^^^ use of unresolved module or unlinked crate `serde`
+  |
+  = help: you might be missing a crate named `serde`
+
+error[E0432]: unresolved import `tauri`
+ --> E:\projects\listenMate++\src-tauri\src\commands\speaking_commands.rs:7:5
+  |
+7 | use tauri::State;
+  |     ^^^^^ use of unresolved module or unlinked crate `tauri`
+  |
+  = help: you might be missing a crate named `tauri`
+
+error[E0432]: unresolved import `tauri`
+ --> E:\projects\listenMate++\src-tauri\src\commands\study_commands.rs:3:5
+  |
+3 | use tauri::{command, State};
+  |     ^^^^^ use of unresolved module or unlinked crate `tauri`
+  |
+  = help: you might be missing a crate named `tauri`
+
+error[E0432]: unresolved import `tauri`
+ --> E:\projects\listenMate++\src-tauri\src\commands\system_commands.rs:3:5
+  |
+3 | use tauri::{command, AppHandle, Manager};
+  |     ^^^^^ use of unresolved module or unlinked crate `tauri`
+  |
+  = help: you might be missing a crate named `tauri`
+
+error[E0432]: unresolved import `rusqlite`
+ --> E:\projects\listenMate++\src-tauri\src\db\study_store.rs:1:5
+  |
+1 | use rusqlite::{params, Connection, OptionalExtension, Result};
+  |     ^^^^^^^^ use of unresolved module or unlinked crate `rusqlite`
+  |
+  = help: you might be missing a crate named `rusqlite`
+
+error[E0432]: unresolved import `serde`
+ --> E:\projects\listenMate++\src-tauri\src\db\study_store.rs:2:5
+  |
+2 | use serde::{Deserialize, Serialize};
+  |     ^^^^^ use of unresolved module or unlinked crate `serde`
+  |
+  = help: you might be missing a crate named `serde`
+
+error[E0432]: unresolved import `rusqlite`
+ --> E:\projects\listenMate++\src-tauri\src\db\transcript_store.rs:1:5
+  |
+1 | use rusqlite::{params, Connection, Result};
+  |     ^^^^^^^^ use of unresolved module or unlinked crate `rusqlite`
+  |
+  = help: you might be missing a crate named `rusqlite`
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `argon2`
+ --> E:\projects\listenMate++\src-tauri\src\db\user_store.rs:1:5
+  |
+1 | use argon2::{
+  |     ^^^^^^ use of unresolved module or unlinked crate `argon2`
+  |
+  = help: you might be missing a crate named `argon2`
+
+error[E0432]: unresolved import `serde`
+ --> E:\projects\listenMate++\src-tauri\src\db\transcript_store.rs:2:5
+  |
+2 | use serde::{Deserialize, Serialize};
+  |     ^^^^^ use of unresolved module or unlinked crate `serde`
+  |
+  = help: you might be missing a crate named `serde`
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `rand`
+ --> E:\projects\listenMate++\src-tauri\src\db\user_store.rs:5:5
+  |
+5 | use rand::rngs::OsRng;
+  |     ^^^^ use of unresolved module or unlinked crate `rand`
+  |
+  = help: you might be missing a crate named `rand`
+
+error[E0432]: unresolved import `argon2`
+ --> E:\projects\listenMate++\src-tauri\src\db\user_store.rs:1:5
+  |
+1 | use argon2::{
+  |     ^^^^^^ use of unresolved module or unlinked crate `argon2`
+  |
+  = help: you might be missing a crate named `argon2`
+
+error[E0432]: unresolved import `rusqlite`
+ --> E:\projects\listenMate++\src-tauri\src\db\user_store.rs:6:5
+  |
+6 | use rusqlite::{params, Connection, OptionalExtension, Result};
+  |     ^^^^^^^^ use of unresolved module or unlinked crate `rusqlite`
+  |
+  = help: you might be missing a crate named `rusqlite`
+
+error[E0432]: unresolved import `serde`
+ --> E:\projects\listenMate++\src-tauri\src\db\user_store.rs:7:5
+  |
+7 | use serde::{Deserialize, Serialize};
+  |     ^^^^^ use of unresolved module or unlinked crate `serde`
+  |
+  = help: you might be missing a crate named `serde`
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `tokio`
+  --> E:\projects\listenMate++\src-tauri\src\lib.rs:19:5
+   |
+19 | use tokio::sync::Mutex as AsyncMutex;
+   |     ^^^^^ use of unresolved module or unlinked crate `tokio`
+   |
+   = help: you might be missing a crate named `tokio`
+
+error[E0432]: unresolved import `tauri`
+  --> E:\projects\listenMate++\src-tauri\src\lib.rs:18:5
+   |
+18 | use tauri::Manager;
+   |     ^^^^^ use of unresolved module or unlinked crate `tauri`
+   |
+   = help: you might be missing a crate named `tauri`
+
+error[E0432]: unresolved import `tauri_plugin_dialog`
+   --> E:\projects\listenMate++\src-tauri\src\commands\audio_commands.rs:119:9
+    |
+119 |     use tauri_plugin_dialog::DialogExt;
+    |         ^^^^^^^^^^^^^^^^^^^ use of unresolved module or unlinked crate `tauri_plugin_dialog`
+    |
+    = help: you might be missing a crate named `tauri_plugin_dialog`
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `serde`
+  --> E:\projects\listenMate++\src-tauri\src\ai\model_manager.rs:16:17
+   |
+16 | #[derive(Clone, serde::Serialize)]
+   |                 ^^^^^ use of unresolved module or unlinked crate `serde`
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `ort`
+  --> E:\projects\listenMate++\src-tauri\src\ai\pronunciation_evaluator.rs:95:18
+   |
+95 |             .run(ort::inputs![&*input_name => input_tensor])
+   |                  ^^^ use of unresolved module or unlinked crate `ort`
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `ndarray`
+   --> E:\projects\listenMate++\src-tauri\src\ai\pronunciation_evaluator.rs:112:45
+    |
+112 |             let frame_logits = logits.slice(ndarray::s![0, t, ..]);
+    |                                             ^^^^^^^ use of unresolved module or unlinked crate `ndarray`
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `ndarray`
+   --> E:\projects\listenMate++\src-tauri\src\ai\pronunciation_evaluator.rs:152:57
+    |
+152 |                         let frame_logits = logits.slice(ndarray::s![0, tt, ..]);
+    |                                                         ^^^^^^^ use of unresolved module or unlinked crate `ndarray`
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `tauri`
+ --> E:\projects\listenMate++\src-tauri\src\commands\audio_commands.rs:6:3
+  |
+6 | #[tauri::command]
+  |   ^^^^^ use of unresolved module or unlinked crate `tauri`
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `tauri`
+  --> E:\projects\listenMate++\src-tauri\src\commands\audio_commands.rs:11:3
+   |
+11 | #[tauri::command]
+   |   ^^^^^ use of unresolved module or unlinked crate `tauri`
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `tauri`
+  --> E:\projects\listenMate++\src-tauri\src\commands\audio_commands.rs:16:3
+   |
+16 | #[tauri::command]
+   |   ^^^^^ use of unresolved module or unlinked crate `tauri`
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `tauri`
+  --> E:\projects\listenMate++\src-tauri\src\commands\audio_commands.rs:21:3
+   |
+21 | #[tauri::command]
+   |   ^^^^^ use of unresolved module or unlinked crate `tauri`
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `tauri`
+  --> E:\projects\listenMate++\src-tauri\src\commands\audio_commands.rs:26:3
+   |
+26 | #[tauri::command]
+   |   ^^^^^ use of unresolved module or unlinked crate `tauri`
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `tauri`
+  --> E:\projects\listenMate++\src-tauri\src\commands\audio_commands.rs:31:3
+   |
+31 | #[tauri::command]
+   |   ^^^^^ use of unresolved module or unlinked crate `tauri`
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `tauri`
+  --> E:\projects\listenMate++\src-tauri\src\commands\audio_commands.rs:36:3
+   |
+36 | #[tauri::command]
+   |   ^^^^^ use of unresolved module or unlinked crate `tauri`
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `tauri`
+  --> E:\projects\listenMate++\src-tauri\src\commands\audio_commands.rs:41:3
+   |
+41 | #[tauri::command]
+   |   ^^^^^ use of unresolved module or unlinked crate `tauri`
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `tauri`
+  --> E:\projects\listenMate++\src-tauri\src\commands\audio_commands.rs:46:3
+   |
+46 | #[tauri::command]
+   |   ^^^^^ use of unresolved module or unlinked crate `tauri`
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `tauri`
+  --> E:\projects\listenMate++\src-tauri\src\commands\audio_commands.rs:51:3
+   |
+51 | #[tauri::command]
+   |   ^^^^^ use of unresolved module or unlinked crate `tauri`
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `tauri`
+  --> E:\projects\listenMate++\src-tauri\src\commands\audio_commands.rs:56:3
+   |
+56 | #[tauri::command]
+   |   ^^^^^ use of unresolved module or unlinked crate `tauri`
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `tauri`
+  --> E:\projects\listenMate++\src-tauri\src\commands\audio_commands.rs:61:3
+   |
+61 | #[tauri::command]
+   |   ^^^^^ use of unresolved module or unlinked crate `tauri`
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `tauri`
+  --> E:\projects\listenMate++\src-tauri\src\commands\audio_commands.rs:66:3
+   |
+66 | #[tauri::command]
+   |   ^^^^^ use of unresolved module or unlinked crate `tauri`
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `tauri`
+  --> E:\projects\listenMate++\src-tauri\src\commands\audio_commands.rs:71:3
+   |
+71 | #[tauri::command]
+   |   ^^^^^ use of unresolved module or unlinked crate `tauri`
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `tauri`
+  --> E:\projects\listenMate++\src-tauri\src\commands\audio_commands.rs:76:3
+   |
+76 | #[tauri::command]
+   |   ^^^^^ use of unresolved module or unlinked crate `tauri`
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `tauri`
+  --> E:\projects\listenMate++\src-tauri\src\commands\audio_commands.rs:81:3
+   |
+81 | #[tauri::command]
+   |   ^^^^^ use of unresolved module or unlinked crate `tauri`
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `tauri`
+  --> E:\projects\listenMate++\src-tauri\src\commands\audio_commands.rs:89:3
+   |
+89 | #[tauri::command]
+   |   ^^^^^ use of unresolved module or unlinked crate `tauri`
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `tauri`
+   --> E:\projects\listenMate++\src-tauri\src\commands\audio_commands.rs:117:3
+    |
+117 | #[tauri::command]
+    |   ^^^^^ use of unresolved module or unlinked crate `tauri`
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `tauri`
+   --> E:\projects\listenMate++\src-tauri\src\commands\audio_commands.rs:138:3
+    |
+138 | #[tauri::command]
+    |   ^^^^^ use of unresolved module or unlinked crate `tauri`
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `tauri`
+ --> E:\projects\listenMate++\src-tauri\src\commands\auth_commands.rs:5:3
+  |
+5 | #[tauri::command]
+  |   ^^^^^ use of unresolved module or unlinked crate `tauri`
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `tauri`
+  --> E:\projects\listenMate++\src-tauri\src\commands\auth_commands.rs:23:3
+   |
+23 | #[tauri::command]
+   |   ^^^^^ use of unresolved module or unlinked crate `tauri`
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `tauri`
+  --> E:\projects\listenMate++\src-tauri\src\commands\auth_commands.rs:35:3
+   |
+35 | #[tauri::command]
+   |   ^^^^^ use of unresolved module or unlinked crate `tauri`
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `tauri`
+  --> E:\projects\listenMate++\src-tauri\src\commands\auth_commands.rs:41:3
+   |
+41 | #[tauri::command]
+   |   ^^^^^ use of unresolved module or unlinked crate `tauri`
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `tauri`
+  --> E:\projects\listenMate++\src-tauri\src\commands\auth_commands.rs:46:3
+   |
+46 | #[tauri::command]
+   |   ^^^^^ use of unresolved module or unlinked crate `tauri`
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `tauri`
+  --> E:\projects\listenMate++\src-tauri\src\commands\auth_commands.rs:62:3
+   |
+62 | #[tauri::command]
+   |   ^^^^^ use of unresolved module or unlinked crate `tauri`
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `tauri`
+  --> E:\projects\listenMate++\src-tauri\src\commands\auth_commands.rs:78:3
+   |
+78 | #[tauri::command]
+   |   ^^^^^ use of unresolved module or unlinked crate `tauri`
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `tauri`
+  --> E:\projects\listenMate++\src-tauri\src\commands\download_commands.rs:17:3
+   |
+17 | #[tauri::command]
+   |   ^^^^^ use of unresolved module or unlinked crate `tauri`
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `tauri`
+  --> E:\projects\listenMate++\src-tauri\src\commands\download_commands.rs:23:3
+   |
+23 | #[tauri::command]
+   |   ^^^^^ use of unresolved module or unlinked crate `tauri`
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `tauri`
+  --> E:\projects\listenMate++\src-tauri\src\commands\download_commands.rs:29:3
+   |
+29 | #[tauri::command]
+   |   ^^^^^ use of unresolved module or unlinked crate `tauri`
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `tauri`
+ --> E:\projects\listenMate++\src-tauri\src\commands\progress_commands.rs:8:3
+  |
+8 | #[tauri::command]
+  |   ^^^^^ use of unresolved module or unlinked crate `tauri`
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `tauri`
+  --> E:\projects\listenMate++\src-tauri\src\commands\progress_commands.rs:31:3
+   |
+31 | #[tauri::command]
+   |   ^^^^^ use of unresolved module or unlinked crate `tauri`
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `tauri`
+ --> E:\projects\listenMate++\src-tauri\src\commands\settings_commands.rs:9:3
+  |
+9 | #[tauri::command]
+  |   ^^^^^ use of unresolved module or unlinked crate `tauri`
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `tauri`
+  --> E:\projects\listenMate++\src-tauri\src\commands\settings_commands.rs:61:3
+   |
+61 | #[tauri::command]
+   |   ^^^^^ use of unresolved module or unlinked crate `tauri`
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `tauri`
+  --> E:\projects\listenMate++\src-tauri\src\commands\speaking_commands.rs:27:3
+   |
+27 | #[tauri::command]
+   |   ^^^^^ use of unresolved module or unlinked crate `tauri`
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `tauri`
+   --> E:\projects\listenMate++\src-tauri\src\commands\speaking_commands.rs:116:3
+    |
+116 | #[tauri::command]
+    |   ^^^^^ use of unresolved module or unlinked crate `tauri`
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `tauri`
+   --> E:\projects\listenMate++\src-tauri\src\commands\speaking_commands.rs:161:3
+    |
+161 | #[tauri::command]
+    |   ^^^^^ use of unresolved module or unlinked crate `tauri`
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `tauri`
+   --> E:\projects\listenMate++\src-tauri\src\commands\study_commands.rs:127:3
+    |
+127 | #[tauri::command]
+    |   ^^^^^ use of unresolved module or unlinked crate `tauri`
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `tauri`
+   --> E:\projects\listenMate++\src-tauri\src\commands\study_commands.rs:134:3
+    |
+134 | #[tauri::command]
+    |   ^^^^^ use of unresolved module or unlinked crate `tauri`
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `tauri`
+   --> E:\projects\listenMate++\src-tauri\src\commands\study_commands.rs:145:3
+    |
+145 | #[tauri::command]
+    |   ^^^^^ use of unresolved module or unlinked crate `tauri`
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `tauri`
+   --> E:\projects\listenMate++\src-tauri\src\commands\study_commands.rs:158:3
+    |
+158 | #[tauri::command]
+    |   ^^^^^ use of unresolved module or unlinked crate `tauri`
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `tauri`
+  --> E:\projects\listenMate++\src-tauri\src\lib.rs:58:20
+   |
+58 | #[cfg_attr(mobile, tauri::mobile_entry_point)]
+   |                    ^^^^^ use of unresolved module or unlinked crate `tauri`
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `tauri`
+   --> E:\projects\listenMate++\src-tauri\src\lib.rs:143:25
+    |
+143 |         .invoke_handler(tauri::generate_handler![
+    |                         ^^^^^ use of unresolved module or unlinked crate `tauri`
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `tauri`
+   --> E:\projects\listenMate++\src-tauri\src\lib.rs:213:14
+    |
+213 |         .run(tauri::generate_context!())
+    |              ^^^^^ use of unresolved module or unlinked crate `tauri`
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `ndarray`
+   --> E:\projects\listenMate++\src-tauri\src\ai\pronunciation_evaluator.rs:104:13
+    |
+104 |             ndarray::ArrayViewD::from_shape(shape_vec, logits_data).map_err(|e| e.to_string())?;
+    |             ^^^^^^^ use of unresolved module or unlinked crate `ndarray`
+    |
+    = help: you might be missing a crate named `ndarray`
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `symphonia`
+   --> E:\projects\listenMate++\src-tauri\src\audio\engine.rs:726:22
+    |
+726 |         let probed = symphonia::default::get_probe()
+    |                      ^^^^^^^^^ use of unresolved module or unlinked crate `symphonia`
+    |
+    = help: you might be missing a crate named `symphonia`
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `rodio`
+   --> E:\projects\listenMate++\src-tauri\src\audio\sonic.rs:233:68
+    |
+233 |     fn try_seek(&mut self, pos: std::time::Duration) -> Result<(), rodio::source::SeekError> {
+    |                                                                    ^^^^^ use of unresolved module or unlinked crate `rodio`
+    |
+    = help: you might be missing a crate named `rodio`
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `tokio`
+  --> E:\projects\listenMate++\src-tauri\src\commands\ai_commands.rs:59:17
+   |
+59 |     let words = tokio::task::spawn_blocking(move || {
+   |                 ^^^^^ use of unresolved module or unlinked crate `tokio`
+   |
+   = help: you might be missing a crate named `tokio`
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `chrono`
+  --> E:\projects\listenMate++\src-tauri\src\commands\auth_commands.rs:16:21
+   |
+16 |         created_at: chrono::Local::now().format("%Y-%m-%d %H:%M:%S").to_string(),
+   |                     ^^^^^^ use of unresolved module or unlinked crate `chrono`
+   |
+   = help: you might be missing a crate named `chrono`
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `tauri_plugin_shell`
+  --> E:\projects\listenMate++\src-tauri\src\commands\download_commands.rs:69:13
+   |
+69 |             tauri_plugin_shell::process::CommandEvent::Stdout(line) => {
+   |             ^^^^^^^^^^^^^^^^^^ use of unresolved module or unlinked crate `tauri_plugin_shell`
+   |
+   = help: you might be missing a crate named `tauri_plugin_shell`
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `tauri_plugin_shell`
+  --> E:\projects\listenMate++\src-tauri\src\commands\download_commands.rs:76:13
+   |
+76 |             tauri_plugin_shell::process::CommandEvent::Stderr(line) => {
+   |             ^^^^^^^^^^^^^^^^^^ use of unresolved module or unlinked crate `tauri_plugin_shell`
+   |
+   = help: you might be missing a crate named `tauri_plugin_shell`
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `tauri_plugin_shell`
+  --> E:\projects\listenMate++\src-tauri\src\commands\download_commands.rs:80:13
+   |
+80 |             tauri_plugin_shell::process::CommandEvent::Terminated(status) => {
+   |             ^^^^^^^^^^^^^^^^^^ use of unresolved module or unlinked crate `tauri_plugin_shell`
+   |
+   = help: you might be missing a crate named `tauri_plugin_shell`
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `rusqlite`
+   --> E:\projects\listenMate++\src-tauri\src\db\study_store.rs:770:33
+    |
+770 |         let mut params_vec: Vec<rusqlite::types::Value> =
+    |                                 ^^^^^^^^ use of unresolved module or unlinked crate `rusqlite`
+    |
+    = help: you might be missing a crate named `rusqlite`
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `rusqlite`
+   --> E:\projects\listenMate++\src-tauri\src\db\study_store.rs:771:18
+    |
+771 |             vec![rusqlite::types::Value::Integer(user_id)];
+    |                  ^^^^^^^^ use of unresolved module or unlinked crate `rusqlite`
+    |
+    = help: you might be missing a crate named `rusqlite`
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `rusqlite`
+   --> E:\projects\listenMate++\src-tauri\src\db\study_store.rs:775:29
+    |
+775 |             params_vec.push(rusqlite::types::Value::Text(format!("%{}%", query)));
+    |                             ^^^^^^^^ use of unresolved module or unlinked crate `rusqlite`
+    |
+    = help: you might be missing a crate named `rusqlite`
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `tauri`
+  --> E:\projects\listenMate++\src-tauri\src\lib.rs:60:5
+   |
+60 |     tauri::Builder::default()
+   |     ^^^^^ use of unresolved module or unlinked crate `tauri`
+   |
+   = help: you might be missing a crate named `tauri`
+help: consider importing this struct
+   |
+ 7 + use std::thread::Builder;
+   |
+help: if you import `Builder`, refer to it directly
+   |
+60 -     tauri::Builder::default()
+60 +     Builder::default()
+   |
+
+warning: unused import: `commands::ai_commands`
+ --> E:\projects\listenMate++\src-tauri\src\lib.rs:7:5
+  |
+7 | use commands::ai_commands;
+  |     ^^^^^^^^^^^^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused import: `commands::audio_commands`
+ --> E:\projects\listenMate++\src-tauri\src\lib.rs:8:5
+  |
+8 | use commands::audio_commands;
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `commands::auth_commands`
+ --> E:\projects\listenMate++\src-tauri\src\lib.rs:9:5
+  |
+9 | use commands::auth_commands;
+  |     ^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `commands::download_commands`
+  --> E:\projects\listenMate++\src-tauri\src\lib.rs:10:5
+   |
+10 | use commands::download_commands;
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `commands::progress_commands`
+  --> E:\projects\listenMate++\src-tauri\src\lib.rs:11:5
+   |
+11 | use commands::progress_commands;
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `commands::settings_commands`
+  --> E:\projects\listenMate++\src-tauri\src\lib.rs:13:5
+   |
+13 | use commands::settings_commands;
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `commands::study_commands`
+  --> E:\projects\listenMate++\src-tauri\src\lib.rs:15:5
+   |
+15 | use commands::study_commands;
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `commands::system_commands`
+  --> E:\projects\listenMate++\src-tauri\src\lib.rs:16:5
+   |
+16 | use commands::system_commands;
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `ort`
+  --> E:\projects\listenMate++\src-tauri\src\ai\pronunciation_evaluator.rs:60:26
+   |
+60 |             .map_err(|e: ort::Error| e.to_string())?
+   |                          ^^^ use of unresolved module or unlinked crate `ort`
+   |
+   = help: you might be missing a crate named `ort`
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `ort`
+  --> E:\projects\listenMate++\src-tauri\src\ai\pronunciation_evaluator.rs:62:26
+   |
+62 |             .map_err(|e: ort::Error| e.to_string())?;
+   |                          ^^^ use of unresolved module or unlinked crate `ort`
+   |
+   = help: you might be missing a crate named `ort`
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `ort`
+  --> E:\projects\listenMate++\src-tauri\src\ai\pronunciation_evaluator.rs:92:65
+   |
+92 |         let input_tensor = Value::from_array(array).map_err(|e: ort::Error| e.to_string())?;
+   |                                                                 ^^^ use of unresolved module or unlinked crate `ort`
+   |
+   = help: you might be missing a crate named `ort`
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `ort`
+  --> E:\projects\listenMate++\src-tauri\src\ai\pronunciation_evaluator.rs:96:26
+   |
+96 |             .map_err(|e: ort::Error| e.to_string())?;
+   |                          ^^^ use of unresolved module or unlinked crate `ort`
+   |
+   = help: you might be missing a crate named `ort`
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `ort`
+   --> E:\projects\listenMate++\src-tauri\src\ai\pronunciation_evaluator.rs:101:26
+    |
+101 |             .map_err(|e: ort::Error| e.to_string())?;
+    |                          ^^^ use of unresolved module or unlinked crate `ort`
+    |
+    = help: you might be missing a crate named `ort`
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `rodio`
+   --> E:\projects\listenMate++\src-tauri\src\audio\engine.rs:206:20
+    |
+206 |     stream_handle: rodio::OutputStreamHandle,
+    |                    ^^^^^ use of unresolved module or unlinked crate `rodio`
+    |
+    = help: you might be missing a crate named `rodio`
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `tauri`
+   --> E:\projects\listenMate++\src-tauri\src\commands\audio_commands.rs:118:37
+    |
+118 | pub async fn save_recording_as(app: tauri::AppHandle, bytes: Vec<u8>) -> Result<(), String> {
+    |                                     ^^^^^ use of unresolved module or unlinked crate `tauri`
+    |
+    = help: you might be missing a crate named `tauri`
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `tauri`
+   --> E:\projects\listenMate++\src-tauri\src\commands\audio_commands.rs:139:31
+    |
+139 | pub fn restart_segment(state: tauri::State<'_, AudioState>) -> Result<(), String> {
+    |                               ^^^^^ use of unresolved module or unlinked crate `tauri`
+    |
+    = help: you might be missing a crate named `tauri`
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `which`
+  --> E:\projects\listenMate++\src-tauri\src\commands\download_commands.rs:19:46
+   |
+19 |     app.shell().sidecar("yt-dlp").is_ok() || which::which("yt-dlp").is_ok()
+   |                                              ^^^^^ use of unresolved module or unlinked crate `which`
+   |
+   = help: you might be missing a crate named `which`
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `which`
+  --> E:\projects\listenMate++\src-tauri\src\commands\download_commands.rs:25:46
+   |
+25 |     app.shell().sidecar("ffmpeg").is_ok() || which::which("ffmpeg").is_ok()
+   |                                              ^^^^^ use of unresolved module or unlinked crate `which`
+   |
+   = help: you might be missing a crate named `which`
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `serde_json`
+  --> E:\projects\listenMate++\src-tauri\src\commands\progress_commands.rs:16:9
+   |
+16 |         serde_json::to_string(&progress.segments).map_err(|e| format!("序列化失败: {}", e))?;
+   |         ^^^^^^^^^^ use of unresolved module or unlinked crate `serde_json`
+   |
+   = help: you might be missing a crate named `serde_json`
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `tauri`
+  --> E:\projects\listenMate++\src-tauri\src\commands\pronunciation_commands.rs:52:22
+   |
+52 |         .map_err(|e: tauri::Error| e.to_string())?;
+   |                      ^^^^^ use of unresolved module or unlinked crate `tauri`
+   |
+   = help: you might be missing a crate named `tauri`
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `serde_json`
+   --> E:\projects\listenMate++\src-tauri\src\db\study_store.rs:647:24
+    |
+647 |         let segments = serde_json::from_str(&segments_json).unwrap_or_default();
+    |                        ^^^^^^^^^^ use of unresolved module or unlinked crate `serde_json`
+    |
+    = help: you might be missing a crate named `serde_json`
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `rusqlite`
+   --> E:\projects\listenMate++\src-tauri\src\db\study_store.rs:786:24
+    |
+786 |             .query_map(rusqlite::params_from_iter(params_vec), |row| {
+    |                        ^^^^^^^^ use of unresolved module or unlinked crate `rusqlite`
+    |
+    = help: you might be missing a crate named `rusqlite`
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `tauri_plugin_notification`
+  --> E:\projects\listenMate++\src-tauri\src\lib.rs:61:17
+   |
+61 |         .plugin(tauri_plugin_notification::init())
+   |                 ^^^^^^^^^^^^^^^^^^^^^^^^^ use of unresolved module or unlinked crate `tauri_plugin_notification`
+   |
+   = help: you might be missing a crate named `tauri_plugin_notification`
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `tauri_plugin_opener`
+  --> E:\projects\listenMate++\src-tauri\src\lib.rs:62:17
+   |
+62 |         .plugin(tauri_plugin_opener::init())
+   |                 ^^^^^^^^^^^^^^^^^^^ use of unresolved module or unlinked crate `tauri_plugin_opener`
+   |
+   = help: you might be missing a crate named `tauri_plugin_opener`
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `tauri_plugin_dialog`
+  --> E:\projects\listenMate++\src-tauri\src\lib.rs:63:17
+   |
+63 |         .plugin(tauri_plugin_dialog::init())
+   |                 ^^^^^^^^^^^^^^^^^^^ use of unresolved module or unlinked crate `tauri_plugin_dialog`
+   |
+   = help: you might be missing a crate named `tauri_plugin_dialog`
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `tauri_plugin_shell`
+  --> E:\projects\listenMate++\src-tauri\src\lib.rs:64:17
+   |
+64 |         .plugin(tauri_plugin_shell::init())
+   |                 ^^^^^^^^^^^^^^^^^^ use of unresolved module or unlinked crate `tauri_plugin_shell`
+   |
+   = help: you might be missing a crate named `tauri_plugin_shell`
+
+error: aborting due to 126 previous errors; 8 warnings emitted
+
+Some errors have detailed explanations: E0432, E0433.
+For more information about an error, try `rustc --explain E0432`.

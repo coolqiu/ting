@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Ting</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <script>
+    const theme = localStorage.getItem("theme") || "system";
+    if (theme === "dark" || (theme === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches)) {
+      document.documentElement.classList.add("dark");
+    }
+
+    window.onerror = function (msg, url, line, col, error) {
+      var d = document.createElement("div");
+      d.style = "position:fixed;top:0;left:0;z-index:999999;background:rgba(255,0,0,0.9);color:white;padding:10px;font-size:12px;width:100%;word-break:break-all;";
+      d.innerText = "Frontend Crash: " + msg + "\n" + url + ":" + line + ":" + col + "\n" + (error ? error.stack : "");
+      document.body.appendChild(d);
+      return false;
+    };
+
+    window.addEventListener("unhandledrejection", function (event) {
+      var d = document.createElement("div");
+      d.style = "position:fixed;bottom:0;left:0;z-index:999999;background:rgba(200,50,0,0.9);color:white;padding:10px;font-size:12px;width:100%;word-break:break-all;";
+      d.innerText = "Promise Rejected: " + (event.reason && event.reason.stack ? event.reason.stack : event.reason);
+      document.body.appendChild(d);
+    });
+  </script>
+</head>
+
+<body>
+  <div id="root"></div>
+  <div style="position: fixed; bottom: 0; right: 0; font-size: 8px; color: gray; z-index: 9999; pointer-events: none;">
+    v1.0.2-final</div>
+  <script type="module" src="/src/main.tsx"></script>
+</body>
+
+</html>
