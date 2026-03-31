@@ -29,7 +29,6 @@ jobs:
 
       - name: Inject Team ID
         run: |
-          # Inject the Apple Team ID from secrets into the config file
           sed -i '' "s/__APPLE_DEVELOP_TEAM__/${{ secrets.APPLE_DEVELOPMENT_TEAM }}/g" src-tauri/tauri.conf.json
 
       - name: Import Apple Certificates
@@ -43,60 +42,72 @@ jobs:
         run: |
           mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
           echo "${{ secrets.PROVISIONING_PROFILE }}" | tr -d '\r\n ' | base64 --decode > profile_temp.mobileprovision
-          
-          # Use the robust regex we know works
           PROFILE_UUID=$(grep -a -oE "[a-fA-F0-9]{8}-([a-fA-F0-9]{4}-){3}[a-fA-F0-9]{12}" profile_temp.mobileprovision | head -n 1)
-          
-          if [ -z "$PROFILE_UUID" ]; then
-            echo "ERROR: Could not extract UUID."
-            exit 1
-          fi
-          
-          # Rename to the standard {UUID}.mobileprovision format
           cp profile_temp.mobileprovision ~/Library/MobileDevice/Provisioning\ Profiles/$PROFILE_UUID.mobileprovision
           echo "profile_uuid=$PROFILE_UUID" >> $GITHUB_OUTPUT
           echo "Installed Profile UUID: $PROFILE_UUID"
 
-      - name: Initialize iOS project (if needed)
+      - name: Initialize iOS project
         run: |
           if [ ! -d "src-tauri/gen/apple" ]; then
             npm run tauri ios init
           fi
 
-      - name: Create xcodebuild Injection Shim
+      - name: Create ExportOptions.plist
         run: |
-          # The ultimate shim: Filter BAD params AND Inject GOOD params
-          sudo cat <<EOF > /usr/local/bin/xcodebuild
-          #!/bin/bash
-          ARGS=()
-          for arg in "\$@"; do
-              if [[ "\$arg" != "-allowProvisioningUpdates" ]]; then
-                  ARGS+=("\$arg")
-              fi
-          done
+          cat <<EOF > ExportOptions.plist
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+              <key>method</key>
+              <string>app-store</string>
+              <key>teamID</key>
+              <string>${{ secrets.APPLE_DEVELOPMENT_TEAM }}</string>
+              <key>provisioningProfiles</key>
+              <dict>
+                  <key>org.ting.app</key>
+                  <string>${{ steps.install_profile.outputs.profile_uuid }}</string>
+              </dict>
+              <key>signingStyle</key>
+              <string>manual</string>
+              <key>signingCertificate</key>
+              <string>Apple Distribution</string>
+              <key>destination</key>
+              <string>export</string>
+          </dict>
+          </plist>
+          EOF
+
+      - name: Build and Archive
+        # We manually run archive to ensure full control over manual signing
+        run: |
+          # First, let tauri prepare the assets and rust lib
+          npm run tauri build -- --mobile --target aarch64
           
-          # Call the real xcodebuild with INJECTED signing flags
-          /usr/bin/xcodebuild "\${ARGS[@]}" \
+          # Now, manually run xcodebuild archive
+          xcodebuild archive \
+            -scheme ting_iOS \
+            -workspace src-tauri/gen/apple/ting.xcodeproj/project.xcworkspace \
+            -archivePath build/ting.xcarchive \
+            -allowProvisioningUpdates \
+            -sdk iphoneos \
+            -configuration release \
             CODE_SIGN_STYLE=Manual \
             CODE_SIGN_IDENTITY="Apple Distribution" \
             PROVISIONING_PROFILE_SPECIFIER="${{ steps.install_profile.outputs.profile_uuid }}" \
-            PROVISIONING_PROFILE="${{ steps.install_profile.outputs.profile_uuid }}" \
-            DEVELOPMENT_TEAM="${{ secrets.APPLE_DEVELOPMENT_TEAM }}" \
-            AD_HOC_CODE_SIGNING_ALLOWED=YES
-          EOF
-          sudo chmod +x /usr/local/bin/xcodebuild
-          echo "xcodebuild Injection Shim created."
+            DEVELOPMENT_TEAM="${{ secrets.APPLE_DEVELOPMENT_TEAM }}"
 
-      - name: Build iOS App (Release)
+      - name: Export IPA
         run: |
-          # Use our injection shim to bypass Tauri's CLI limitations
-          export PATH="/usr/local/bin:$PATH"
-          npm run tauri ios build -- --target aarch64
-        env:
-          APPLE_DEVELOPMENT_TEAM: ${{ secrets.APPLE_DEVELOPMENT_TEAM }}
+          xcodebuild -exportArchive \
+            -archivePath build/ting.xcarchive \
+            -exportPath build/ipa \
+            -exportOptionsPlist ExportOptions.plist \
+            -allowProvisioningUpdates
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: ios-release-app
-          path: src-tauri/gen/apple/build/Build/Products/Release-iphoneos/*.app
+          name: ios-release-ipa
+          path: build/ipa/*.ipa
