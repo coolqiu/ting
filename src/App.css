@@ -1439,13 +1439,20 @@ input:focus {
   }
 }
 
-/* Global: Disable system selection menu callout on mobile except for specifically enabled text areas */
-*:not(input):not(textarea) {
+/* Global: Disable system selection menu callout on mobile except for specific areas */
+*:not(input):not(textarea):not(.transcript-word):not(.transcript-container) {
   -webkit-touch-callout: none;
   -webkit-user-select: none;
   -moz-user-select: none;
   -ms-user-select: none;
   user-select: none;
+}
+
+/* Explicitly enable selection for keywords/transcript */
+.transcript-word, .transcript-container {
+  -webkit-touch-callout: default !important;
+  -webkit-user-select: text !important;
+  user-select: text !important;
 }
 
 /* Style for our custom word selection */
