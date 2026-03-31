@@ -100,7 +100,19 @@ pub fn run() {
                             }
                         }
                     })
-                    .build(app)?;
+            }
+
+            #[cfg(target_os = "ios")]
+            {
+                use objc::{msg_send, sel, sel_impl, class};
+                unsafe {
+                    let session: *mut objc::runtime::Object = msg_send![class!(AVAudioSession), sharedInstance];
+                    let str_class = class!(NSString);
+                    let category_str = "AVAudioSessionCategoryPlayback\0";
+                    let category: *mut objc::runtime::Object = msg_send![str_class, stringWithUTF8String: category_str.as_ptr()];
+                    let _: () = msg_send![session, setCategory:category error:0];
+                    let _: () = msg_send![session, setActive:1 error:0];
+                }
             }
 
             let model_manager = ai::model_manager::ModelManager::new(app.handle());
