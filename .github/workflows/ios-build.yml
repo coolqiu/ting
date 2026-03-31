@@ -72,9 +72,28 @@ jobs:
           echo "Created signing.xcconfig:"
           cat signing.xcconfig
 
+      - name: Create xcodebuild Shim
+        run: |
+          # Create a shim script that filters out the -allowProvisioningUpdates flag
+          sudo cat <<EOF > /usr/local/bin/xcodebuild
+          #!/bin/bash
+          # Filter out -allowProvisioningUpdates which causes 'No Accounts' error in CI
+          ARGS=()
+          for arg in "\$@"; do
+              if [[ "\$arg" != "-allowProvisioningUpdates" ]]; then
+                  ARGS+=("\$arg")
+              fi
+          done
+          # Call the real xcodebuild
+          /usr/bin/xcodebuild "\${ARGS[@]}"
+          EOF
+          sudo chmod +x /usr/local/bin/xcodebuild
+          echo "xcodebuild Shim created at /usr/local/bin/xcodebuild"
+
       - name: Build iOS App (Release)
         run: |
-          # We use -xcconfig to force override all project signing settings
+          # Use our shim to bypass Tauri's hardcoded params
+          export PATH="/usr/local/bin:\$PATH"
           npm run tauri ios build -- --target aarch64 -- \
             -xcconfig $(pwd)/signing.xcconfig \
             CODE_SIGN_IDENTITY="Apple Distribution"
