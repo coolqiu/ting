@@ -1439,25 +1439,43 @@ input:focus {
   }
 }
 
-/* Global: Disable system selection menu callout on mobile except for specific areas */
-*:not(input):not(textarea):not(.transcript-word):not(.transcript-container) {
-  -webkit-touch-callout: none;
+/* Global: Disable system selection menu callout on mobile to use our custom menu exclusively */
+*:not(input):not(textarea) {
+  -webkit-touch-callout: none !important;
   -webkit-user-select: none;
   -moz-user-select: none;
   -ms-user-select: none;
   user-select: none;
 }
 
-/* Explicitly enable selection for keywords/transcript */
+/* Explicitly enable only text selection area for transcript, but still no system menu */
 .transcript-word, .transcript-container {
-  -webkit-touch-callout: default !important;
+  -webkit-touch-callout: none !important;
   -webkit-user-select: text !important;
   user-select: text !important;
 }
 
+/* Premium Selection Popup Overlay (Build 60) */
+.selection-popup {
+  pointer-events: auto;
+  user-select: none;
+  filter: drop-shadow(0 12px 32px rgba(0,0,0,0.5));
+  transition: opacity var(--transition-fast) ease-out, transform var(--transition-bounce) ease-out;
+  background: rgba(45, 45, 60, 0.85); /* Semi-transparent dark bg */
+  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 16px;
+  padding: 6px;
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center;
+  gap: 4px;
+}
+
 /* Style for our custom word selection */
 .transcript-word {
-  margin-right: 4px; /* replaces the literal space in JSX */
+  margin-right: 4px;
 }
 
 .transcript-word.word-selected {
