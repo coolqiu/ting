@@ -55,7 +55,7 @@ jobs:
 
       - name: Build iOS App (Signed Release)
         # We switch to real device target (aarch64) and release mode
-        run: npm run tauri ios build -- --release --target aarch64
+        run: npm run tauri ios build -- --target aarch64
         env:
           # These are picked up by xcodebuild via Tauri
           APPLE_DEVELOPMENT_TEAM: ${{ secrets.APPLE_DEVELOPMENT_TEAM }}
