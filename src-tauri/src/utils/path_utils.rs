@@ -40,7 +40,15 @@ pub fn resolve_internal_path(app: &AppHandle, raw_path: &str) -> String {
                         }
                     }
                     
-                    return final_path.to_string_lossy().to_string();
+                    let final_str = final_path.to_string_lossy().to_string();
+                    
+                    #[cfg(target_os = "ios")]
+                    {
+                        if final_str.contains("Library/Library") {
+                            return final_str.replace("Library/Library", "Library");
+                        }
+                    }
+                    return final_str;
                 }
             }
         }
@@ -69,11 +77,24 @@ pub fn resolve_internal_path(app: &AppHandle, raw_path: &str) -> String {
                     }
                 }
                 
-                return final_path.to_string_lossy().to_string();
+                let res = final_path.to_string_lossy().to_string();
+                #[cfg(target_os = "ios")]
+                {
+                    if res.contains("Library/Library") {
+                        return res.replace("Library/Library", "Library");
+                    }
+                }
+                return res;
             }
         }
     }
     
-    // If no internal markers found, or app_data fails, return the decoded string
-    path_str.to_string()
+    let final_res = path_str.to_string();
+    #[cfg(target_os = "ios")]
+    {
+        if final_res.contains("Library/Library") {
+            return final_res.replace("Library/Library", "Library");
+        }
+    }
+    final_res
 }
