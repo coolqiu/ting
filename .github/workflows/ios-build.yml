@@ -93,7 +93,7 @@ jobs:
       - name: Build iOS App (Release)
         run: |
           # Use our shim to bypass Tauri's hardcoded params
-          export PATH="/usr/local/bin:\$PATH"
+          export PATH="/usr/local/bin:$PATH"
           npm run tauri ios build -- --target aarch64 -- \
             -xcconfig $(pwd)/signing.xcconfig \
             CODE_SIGN_IDENTITY="Apple Distribution"
