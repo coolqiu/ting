@@ -8,3 +8,4 @@ pub mod settings_commands;
 pub mod speaking_commands;
 pub mod study_commands;
 pub mod system_commands;
+pub mod file_commands;

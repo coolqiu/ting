@@ -57,5 +57,7 @@ commands.allow = [
     "open_model_folder",
     "clear_temp_cache",
     "export_user_data",
-    "update_username"
+    "update_username",
+    "update_avatar",
+    "copy_file_with_progress"
 ]

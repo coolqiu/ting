@@ -44,6 +44,8 @@ pub fn check_ffmpeg(#[allow(unused_variables)] app: AppHandle) -> bool {
 pub async fn download_url_audio(app: AppHandle, #[allow(unused_variables)] url: String) -> Result<String, String> {
     #[cfg(any(target_os = "android", target_os = "ios"))]
     {
+        let _ = app;
+        let _ = url;
         Err("移动端暂不支持直接下载视频/音频，请在桌面端操作。".to_string())
     }
     #[cfg(not(any(target_os = "android", target_os = "ios")))]

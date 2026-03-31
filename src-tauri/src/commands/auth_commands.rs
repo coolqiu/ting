@@ -67,7 +67,21 @@ pub fn update_avatar(
 ) -> Result<UserInfo, String> {
     let mut current_user = session.current_user.lock().unwrap();
     if let Some(user) = current_user.as_mut() {
+        // 1. Physical Cleanup of OLD avatar
+        if let Some(old_avatar) = &user.avatar {
+            // Only delete if it's an internal managed file
+            if old_avatar.contains("avatars") || old_avatar.contains("audio_archive") {
+                let path = std::path::Path::new(old_avatar);
+                if path.exists() {
+                    let _ = std::fs::remove_file(path); // Silently try to delete
+                }
+            }
+        }
+
+        // 2. Update DB
         user_store.update_avatar(user.id, new_avatar.as_deref())?;
+        
+        // 3. Update Session
         user.avatar = new_avatar;
         Ok(user.clone())
     } else {

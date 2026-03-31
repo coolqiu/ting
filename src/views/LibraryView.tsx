@@ -6,7 +6,7 @@ import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useToast } from "../components/Toast";
 import { LearningMaterial, PlaybackInfo } from "../types";
-import { Search, MoreVertical, Trash2, Edit2, Play, Filter, BookOpen, Link, FileAudio } from "lucide-react";
+import { Search, MoreVertical, Trash2, Edit2, Play, Filter, BookOpen, Link, FileAudio, Loader2 } from "lucide-react";
 import { resolveAndArchiveAudio } from "../utils/audioLoader";
 
 export function LibraryView() {
@@ -18,10 +18,21 @@ export function LibraryView() {
     const [searchQuery, setSearchQuery] = useState("");
     const [sortBy, setSortBy] = useState("newest");
     const [activeMenuId, setActiveMenuId] = useState<number | null>(null);
+    const [isImporting, setIsImporting] = useState(false);
+    const [importProgress, setImportProgress] = useState(0);
     const navigate = useNavigate();
 
     useEffect(() => {
         fetchMaterials();
+        
+        // Listen for internal file copy progress
+        const unlisten = listen<number>("copy-progress", (event) => {
+            setImportProgress(event.payload);
+        });
+
+        return () => {
+            unlisten.then(f => f());
+        };
     }, [searchQuery, sortBy]);
 
     async function fetchMaterials() {
@@ -47,8 +58,14 @@ export function LibraryView() {
         const fileName = (selectedPath.split('/').pop() || selectedPath.split('\\').pop() || 'unknown.wav').split('?')[0];
 
         try {
+            setIsImporting(true);
+            setImportProgress(0);
+            
             const finalPath = await resolveAndArchiveAudio(selectedPath, fileName);
             const info = await invoke<PlaybackInfo>("load_audio", { path: finalPath });
+            
+            setIsImporting(false);
+            
             if (info?.file_path) {
                 const materialId: number = await invoke("add_or_update_material", {
                     title: info.file_name || fileName,
@@ -59,6 +76,7 @@ export function LibraryView() {
             }
             navigate("/workspace");
         } catch (e) {
+            setIsImporting(false);
             error(t("library.loadFail", { error: String(e) }));
         }
 
@@ -371,6 +389,27 @@ export function LibraryView() {
                                     }
                                 }
                             }}>{t("common.save") || "Save"}</button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* [V43] Import Progress Overlay */}
+            {isImporting && (
+                <div className="import-progress-overlay">
+                    <div className="progress-card">
+                        <Loader2 className="animate-spin" size={40} style={{ color: "var(--accent-primary)", margin: "0 auto 20px", display: "block" }} />
+                        <h3 style={{ margin: "0 0 10px 0", fontSize: "18px" }}>{t("library.importing", "正在导入音频...")}</h3>
+                        <p style={{ color: "var(--text-muted)", fontSize: "14px", marginBottom: "20px" }}>
+                            {t("library.importDesc", "请耐心等待，正在存档文件...")}
+                        </p>
+                        
+                        <div className="progress-bar-container">
+                            <div className="progress-bar-fill" style={{ width: `${importProgress}%` }}></div>
+                        </div>
+                        
+                        <div style={{ fontSize: "24px", fontWeight: "bold", color: "var(--accent-primary)" }}>
+                            {importProgress}%
                         </div>
                     </div>
                 </div>

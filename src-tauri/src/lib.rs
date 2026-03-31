@@ -15,6 +15,7 @@ use commands::settings_commands;
 use commands::speaking_commands;
 use commands::study_commands;
 use commands::system_commands;
+use commands::file_commands;
 use std::sync::Mutex as StdMutex;
 use tauri::Manager;
 use tokio::sync::Mutex as AsyncMutex;
@@ -211,6 +212,7 @@ pub fn run() {
             // Settings
             settings_commands::clear_temp_cache,
             settings_commands::export_user_data,
+            file_commands::copy_file_with_progress,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

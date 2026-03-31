@@ -64,11 +64,54 @@ echo [BUILD] Cleaning whisper-rs-sys cache...
 for /d %%i in ("%~dp0src-tauri\target\aarch64-linux-android\debug\build\whisper-rs-sys-*") do rmdir /s /q "%%i"
 for /d %%i in ("%~dp0src-tauri\target\aarch64-linux-android\release\build\whisper-rs-sys-*") do rmdir /s /q "%%i"
 
+echo [BUILD] Explicitly building frontend...
+call npm run build
+
+echo [BUILD] Cleaning Android project cache...
+pushd "%~dp0src-tauri\gen\android"
+call gradlew.bat clean
+popd
+
 echo [BUILD] Running Android build (RELEASE)...
 call npm run tauri android build -- --target aarch64 --apk -vv
 
+:: =================================================================
+:: [V42] AUTOMATED APK SIGNING (ZIPALIGN + APKSIGNER)
+:: =================================================================
+echo [SIGN] Initializing signing tools...
+set "BUILD_TOOLS=D:\android_sdk\build-tools\35.0.0"
+set "ZIPALIGN=%BUILD_TOOLS%\zipalign.exe"
+set "APKSIGNER=%BUILD_TOOLS%\apksigner.bat"
+set "KEYSTORE=%~dp0debug.keystore"
+set "APK_DIR=%~dp0src-tauri\gen\android\app\build\outputs\apk\universal\release"
+set "UNSIGNED_APK=%APK_DIR%\app-universal-release-unsigned.apk"
+set "ALIGNED_APK=%APK_DIR%\app-universal-release-aligned.apk"
+set "SIGNED_APK=%APK_DIR%\app-universal-release-signed.apk"
+
+if not exist "%UNSIGNED_APK%" (
+    echo [ERROR] Unsigned APK not found at: %UNSIGNED_APK%
+    goto :end
+)
+
+echo [SIGN] Aligning APK...
+if exist "%ALIGNED_APK%" del "%ALIGNED_APK%"
+"%ZIPALIGN%" -v 4 "%UNSIGNED_APK%" "%ALIGNED_APK%"
+
+echo [SIGN] Signing APK with debug.keystore...
+if exist "%SIGNED_APK%" del "%SIGNED_APK%"
+:: Using default passwords: android / androiddebugkey / android
+call "%APKSIGNER%" sign --ks "%KEYSTORE%" --ks-pass pass:android --ks-key-alias androiddebugkey --key-pass pass:android --out "%SIGNED_APK%" "%ALIGNED_APK%"
+
+if exist "%SIGNED_APK%" (
+    echo [DONE] APK signed successfully!
+    echo [FILE] %SIGNED_APK%
+) else (
+    echo [ERROR] APK signing failed.
+)
+
+:end
 echo.
-echo [DONE] Android build completed. 
-echo [HINT] Remember to sign the APK before installing on a device if it's a release build.
+echo [DONE] Android build and signing completed. 
+echo [HINT] You can now install 'app-universal-release-signed.apk' directly on your device.
 pause
 endlocal

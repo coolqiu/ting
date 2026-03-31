@@ -125,7 +125,36 @@ pub fn get_all_exercises(
 }
 
 #[tauri::command]
-pub fn delete_material(material_id: i64, store: State<'_, StudyStore>) -> Result<(), String> {
+pub fn delete_material(
+    material_id: i64,
+    session: State<'_, UserSession>,
+    store: State<'_, StudyStore>,
+) -> Result<(), String> {
+    let user_id = session.current_user_id().unwrap_or(0);
+
+    // 1. Fetch material details to get path
+    let material = store
+        .get_material(material_id, user_id)
+        .map_err(|e| format!("Database error fetching material: {}", e))?;
+
+    let file_path = material.source_url;
+
+    // 2. Perform physical deletion ONLY IF it's in our archive
+    // On mobile, all imported files are moved here. On Windows, they are not.
+    if file_path.contains("audio_archive") {
+        let path = std::path::Path::new(&file_path);
+        if path.exists() {
+            if let Err(e) = std::fs::remove_file(path) {
+                eprintln!("[Storage] Failed to delete archived file {}: {}", file_path, e);
+                // We continue with DB deletion even if FS deletion fails 
+                // to avoid unreferenced entries in UI.
+            } else {
+                println!("[Storage] Physically deleted archived file: {}", file_path);
+            }
+        }
+    }
+
+    // 3. Delete from DB
     store
         .delete_material(material_id)
         .map_err(|e| format!("Database error: {}", e))
