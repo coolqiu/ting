@@ -12,8 +12,15 @@ export async function resolveAndArchiveAudio(rawPath: string, originalName: stri
     }
 
     try {
-        const appData = await appDataDir();
+        let appData = await appDataDir();
+
+        // [V53] Surgical iOS Fix: Only normalize on iOS if double Library is found
+        if (/iPad|iPhone|iPod/.test(navigator.userAgent) && appData.includes('Library/Library')) {
+            appData = appData.replace('Library/Library', 'Library');
+        }
+
         const archiveDir = await join(appData, "audio_archive");
+        console.log(`[AudioLoader V53] Final Archive Dir: ${archiveDir}`);
 
         if (!(await exists(archiveDir))) {
             await mkdir(archiveDir, { recursive: true });
@@ -22,7 +29,7 @@ export async function resolveAndArchiveAudio(rawPath: string, originalName: stri
         const safeName = originalName.replace(/[^a-zA-Z0-9.\-_]/g, '_');
         const destPath = await join(archiveDir, `${Date.now()}_${safeName}`);
 
-        console.log(`[AudioLoader V48] Archiving via Native Platform Copy...`);
+        console.log(`[AudioLoader V53] Archiving via Native Platform Copy...`);
         await invoke("copy_file_with_progress", { sourcePath: rawPath, destPath });
 
         return destPath;
