@@ -1,6 +1,6 @@
 {
   "productName": "ting",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "identifier": "org.ting.app",
   "build": {
     "beforeBuildCommand": "npm run build",
@@ -39,9 +39,7 @@
       "frameworks": [
         "Accelerate"
       ],
-      "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false
-      }
+      "infoPlist": "./Info.ios.plist"
     }
   }
 }
