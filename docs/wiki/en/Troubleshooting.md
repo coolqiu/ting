@@ -1,3 +1,5 @@
+English | [中文](EN-Troubleshooting)
+
 # 🔧 Troubleshooting
 
 If you encounter issues while using Ting, please refer to the following common solutions.
@@ -18,4 +20,7 @@ If you need to clear all settings or reset the database:
 - **Feedback Email**: `thinkinsap@gmail.com`
 
 ---
-[<< Previous: Practice Features](Practice-Features.md) | [Back to Home](Home.md)
+[<< Previous: Practice Features](EN-Practice-Features) | [Back to Home](EN-Home)
+
+
+

@@ -1,3 +1,5 @@
+English | [中文](EN-Getting-Started)
+
 # 🚀 Getting Started
 
 Welcome to the world of Ting! Before you dive into your studies, let's set up your learning environment.
@@ -14,4 +16,7 @@ Ting supports multiple users sharing the same application.
 *   **Personalization**: Each user has an independent library and detailed study statistics.
 
 ---
-[Back to Home](Home.md) | [Next: Library Management >>](Library-Management.md)
+[Back to Home](EN-Home) | [Next: Library Management >>](EN-Library-Management)
+
+
+

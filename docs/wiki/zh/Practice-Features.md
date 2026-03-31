@@ -1,3 +1,5 @@
+[English](EN-Practice-Features) | 中文
+
 # ✍️ 专项练习 (Practice Features)
 
 听多多不仅仅是一个播放器，它还内置了针对输入（Input）与输出（Output）的深度训练工具。
@@ -14,4 +16,7 @@
 - **可视化反馈**：通过 **红色/绿色** 精确标注读错或读准的音素（Phonemes），让您像看乐谱一样看出发音问题。
 
 ---
-[<< 上一页：学习工作区](Study-Workspace.md) | [返回首页](Home.md) | [下一页：故障排除 >>](Troubleshooting.md)
+[<< 上一页：学习工作区](Study-Workspace) | [返回首页](Home) | [下一页：故障排除 >>](Troubleshooting)
+
+
+

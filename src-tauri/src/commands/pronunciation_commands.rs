@@ -9,7 +9,7 @@ pub struct EvaluatorState(pub Mutex<PronunciationEvaluator>);
 
 #[command]
 pub async fn assess_pronunciation(
-    _app: AppHandle,
+    app: AppHandle,
     evaluator: State<'_, EvaluatorState>,
     model_manager: State<'_, ModelManager>,
     audio_path: String,
@@ -25,7 +25,9 @@ pub async fn assess_pronunciation(
     let model_path = model_manager.get_model_path(WAV2VEC2_MODEL_NAME);
     evaluator.load_model(model_path)?;
 
-    evaluator.assess(&audio_path, &reference_text)
+    let resolved_path = crate::utils::path_utils::resolve_internal_path(&app, &audio_path);
+
+    evaluator.assess(&resolved_path, &reference_text)
 }
 
 #[command]

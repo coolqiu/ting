@@ -32,9 +32,22 @@ pub async fn transcribe_audio(
     // the second request waits here until the first request finishes writing to DB.
     let _guard = transcription_state.lock.lock().await;
 
+    // Resolve path for mobile stability
+    let resolved_path = crate::utils::path_utils::resolve_internal_path(&app, &path);
+    let audio_path = std::path::PathBuf::from(&resolved_path);
+    
+    // Stabilize cache key: use filename only if it's in our archive, as absolute paths break on mobile
+    let file_hash = if path.contains("audio_archive") || path.contains("ting_rec_") {
+        audio_path.file_name()
+            .and_then(|n| n.to_str())
+            .map(|s| s.to_string())
+            .unwrap_or(path.clone())
+    } else {
+        path.clone()
+    };
+
     let cache_key = format!("{}_v8", DEFAULT_MODEL_NAME);
     let model_used = DEFAULT_MODEL_NAME;
-    let file_hash = path.clone(); // use path as hash for simplicity
 
     // 1. Check Store (if not forcing)
     if force_refresh.unwrap_or(false) == false {
@@ -52,8 +65,6 @@ pub async fn transcribe_audio(
             "Model not initialized or not downloaded. Please download the model first.".into(),
         );
     }
-
-    let audio_path = std::path::PathBuf::from(path.clone());
 
     // Run CPU heavy inference in spawn_blocking pattern
     let words = tokio::task::spawn_blocking(move || {

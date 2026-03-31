@@ -1,3 +1,5 @@
+[English](EN-Binaries-Guide) | 中文
+
 # 📦 二进制文件打包指南 (Binaries Guide)
 
 为了让用户获得“零安装”的体验（无需自行安装 Python 或 FFmpeg），开发者需要将这些工具作为 **Sidecar** 打包。
@@ -41,4 +43,7 @@ rustc -vV
 当您运行 `npm run tauri build` 时，Tauri 会自动检测这些文件并将其压缩进最终的安装包。程序在运行时会优先检测这些内置工具，从而实现开箱即用。
 
 ---
-[返回首页](Home.md) | [返回依赖说明](Dependencies.md)
+[返回首页](Home) | [返回依赖说明](Dependencies)
+
+
+

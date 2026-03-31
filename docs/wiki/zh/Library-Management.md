@@ -1,3 +1,5 @@
+[English](EN-Library-Management) | 中文
+
 # 📚 资料管理 (Library)
 
 在听多多的“资料库”中，您可以轻松组织所有的听力素材。
@@ -18,4 +20,7 @@
 当您的资料库变大时，可以使用顶部的搜索框快速定位素材，或者根据“最近添加”或“标题”进行排序。
 
 ---
-[<< 上一页：入门指南](Getting-Started.md) | [返回首页](Home.md) | [下一页：学习工作区 >>](Study-Workspace.md)
+[<< 上一页：入门指南](Getting-Started) | [返回首页](Home) | [下一页：学习工作区 >>](Study-Workspace)
+
+
+

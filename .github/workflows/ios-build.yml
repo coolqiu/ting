@@ -121,7 +121,7 @@ jobs:
           path: src-tauri/gen/apple/build/arm64/*.ipa
 
       - name: Deliver build to TestFlight
-        uses: apple-actions/upload-testflight-build@v1
+        uses: apple-actions/upload-testflight-build@v4
         with:
           app-path: src-tauri/gen/apple/build/arm64/ting.ipa
           issuer-id: ${{ secrets.APP_STORE_CONNECT_API_KEY_ISSUER_ID }}

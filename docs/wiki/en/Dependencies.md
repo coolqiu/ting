@@ -1,3 +1,5 @@
+English | [中文](EN-Dependencies)
+
 # 🛠 Dependencies
 
 **Ting** relies on several external open-source tools to deliver its core features. If you are a developer or building from source, please refer to the guide below.
@@ -23,7 +25,10 @@
 
 For release versions, Ting supports **Sidecar** mode. This allows us to bundle the pre-compiled binaries of these tools directly into the application installer.
 
-If you are preparing a distribution, please refer to our [Binaries Packaging Guide](Binaries-Guide.md).
+If you are preparing a distribution, please refer to our [Binaries Packaging Guide](EN-Binaries-Guide).
 
 ---
-[Back to Home](Home.md)
+[Back to Home](EN-Home)
+
+
+

@@ -3,6 +3,7 @@ pub mod audio;
 pub mod commands;
 pub mod db;
 pub mod session;
+pub mod utils;
 
 use commands::ai_commands;
 use commands::audio_commands;

@@ -1,3 +1,5 @@
+English | [中文](EN-Practice-Features)
+
 # ✍️ Practice Features
 
 Ting is more than just a player; it includes deep training tools for both input and output.
@@ -14,4 +16,7 @@ This is Ting's core advantage:
 - **Visual Feedback**: Using **Red/Green** colors, Ting precisely marks which phonemes were pronounced correctly or incorrectly, allowing you to see your pronunciation flaws like looking at sheet music.
 
 ---
-[<< Previous: Study Workspace](Study-Workspace.md) | [Back to Home](Home.md) | [Next: Troubleshooting >>](Practice-Features.md)
+[<< Previous: Study Workspace](EN-Study-Workspace) | [Back to Home](EN-Home) | [Next: Troubleshooting >>](EN-Practice-Features)
+
+
+

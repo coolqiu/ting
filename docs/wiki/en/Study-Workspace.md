@@ -1,3 +1,5 @@
+English | [中文](EN-Study-Workspace)
+
 # 🎧 Study Workspace
 
 The Study Workspace is the heart of Ting, integrating all the tools needed for high-efficiency listening training.
@@ -18,4 +20,7 @@ For difficult parts that you can't quite catch:
 - **Select for Translation/Shadowing**: Highlight words or phrases to translate them instantly or lock the range for focused shadowing practice.
 
 ---
-[<< Previous: Library Management](Library-Management.md) | [Back to Home](Home.md) | [Next: Practice Features >>](Practice-Features.md)
+[<< Previous: Library Management](EN-Library-Management) | [Back to Home](EN-Home) | [Next: Practice Features >>](EN-Practice-Features)
+
+
+

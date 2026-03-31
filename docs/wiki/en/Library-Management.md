@@ -1,3 +1,5 @@
+English | [中文](EN-Library-Management)
+
 # 📚 Library Management (Library)
 
 Organize all your listening materials effortlessly within Ting's "Library."
@@ -18,4 +20,7 @@ Want to study directly from a video or podcast on the web?
 As your library grows, use the search box at the top to quickly find your materials, or sort them by "Newest" or "Title."
 
 ---
-[<< Previous: Getting Started](Getting-Started.md) | [Back to Home](Home.md) | [Next: Study Workspace >>](Study-Workspace.md)
+[<< Previous: Getting Started](EN-Getting-Started) | [Back to Home](EN-Home) | [Next: Study Workspace >>](EN-Study-Workspace)
+
+
+

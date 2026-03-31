@@ -1,3 +1,5 @@
+[English](EN-Troubleshooting) | 中文
+
 # 🔧 故障排除 (Troubleshooting)
 
 如果您在使用听多多时遇到问题，请先参考以下常见解决方案。
@@ -18,4 +20,7 @@
 - **反馈邮箱**：`thinkinsap@gmail.com`
 
 ---
-[<< 上一页：专项练习](Practice-Features.md) | [返回首页](Home.md)
+[<< 上一页：专项练习](Practice-Features) | [返回首页](Home)
+
+
+

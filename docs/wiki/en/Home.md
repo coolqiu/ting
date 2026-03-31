@@ -1,3 +1,5 @@
+English | [中文](EN-Home)
+
 # Welcome to Ting (听多多)
 
 > **Listen to me, and you shall embrace a new world.**
@@ -6,12 +8,15 @@
 
 ## Wiki Contents
 
-- [🚀 Getting Started](Getting-Started.md) - Account creation and multi-user login.
-- [📚 Library Management](Library-Management.md) - How to import local audio and web links.
-- [🎧 Study Workspace](Study-Workspace.md) - Introduction to core listening training features.
-- [✍️ Practice Features](Practice-Features.md) - Dictation and AI Shadowing evaluation.
-- [🛠 Dependencies](Dependencies.md) - System dependencies and dev setup.
-- [🔧 Troubleshooting](Troubleshooting.md) - Handling common issues and system resets.
+- [🚀 Getting Started](EN-Getting-Started) - Account creation and multi-user login.
+- [📚 Library Management](EN-Library-Management) - How to import local audio and web links.
+- [🎧 Study Workspace](EN-Study-Workspace) - Introduction to core listening training features.
+- [✍️ Practice Features](EN-Practice-Features) - Dictation and AI Shadowing evaluation.
+- [🛠 Dependencies](EN-Dependencies) - System dependencies and dev setup.
+- [🔧 Troubleshooting](EN-Troubleshooting) - Handling common issues and system resets.
 
 ---
 We hope **Ting** helps you break through your language barriers!
+
+
+

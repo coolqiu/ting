@@ -1,3 +1,5 @@
+[English](EN-Study-Workspace) | 中文
+
 # 🎧 学习工作区 (Study Workspace)
 
 学习工作区是听多多的核心，这里集成了所有高效听力训练所需的工具。
@@ -18,4 +20,7 @@
 - **划选翻译/跟读**：选中文中的单词或短语，可以一键进行翻译或锁定该范围进行跟读。
 
 ---
-[<< 上一页：资料管理](Library-Management.md) | [返回首页](Home.md) | [下一页：专项练习 >>](Practice-Features.md)
+[<< 上一页：资料管理](Library-Management) | [返回首页](Home) | [下一页：专项练习 >>](Practice-Features)
+
+
+

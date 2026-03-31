@@ -4,8 +4,13 @@ use std::io::Write;
 use tauri::State;
 
 #[tauri::command]
-pub fn load_audio(path: String, state: State<'_, AudioState>) -> Result<PlaybackInfo, String> {
-    state.handle.load(&path)
+pub fn load_audio(
+    app: tauri::AppHandle,
+    path: String,
+    state: State<'_, AudioState>,
+) -> Result<PlaybackInfo, String> {
+    let resolved_path = crate::utils::path_utils::resolve_internal_path(&app, &path);
+    state.handle.load(&resolved_path)
 }
 
 #[tauri::command]
