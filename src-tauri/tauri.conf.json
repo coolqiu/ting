@@ -1,6 +1,6 @@
 {
   "productName": "ting",
-  "version": "1.0.4",
+  "version": "1.0.2",
   "identifier": "org.ting.app",
   "build": {
     "beforeBuildCommand": "npm run build",
@@ -39,6 +39,7 @@
       "frameworks": [
         "Accelerate"
       ],
+      "bundleVersion": "3",
       "infoPlist": "./Info.ios.plist"
     }
   }
