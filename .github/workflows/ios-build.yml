@@ -30,6 +30,7 @@ jobs:
       - name: Inject Team ID
         run: |
           # Inject the Apple Team ID from secrets into the config file
+          # We use iOS (capitalized) as confirmed by Tauri 2.1 schema errors
           sed -i '' "s/__APPLE_DEVELOP_TEAM__/${{ secrets.APPLE_DEVELOPMENT_TEAM }}/g" src-tauri/tauri.conf.json
 
       - name: Check Tauri version
@@ -37,12 +38,14 @@ jobs:
 
       - name: Initialize iOS project (if needed)
         run: |
-          if [ ! -d "src-tauri/gen/ios" ]; then
+          # Tauri 2.1+ uses gen/apple for the combined apple project
+          if [ ! -d "src-tauri/gen/apple" ]; then
             npm run tauri ios init
           fi
 
-      - name: Build iOS App (Unsigned Debug)
-        run: npm run tauri ios build -- --debug
+      - name: Build iOS App (Unsigned Simulator)
+        # Building for simulator bypasses the mandatory code signing required for real devices in CI
+        run: npm run tauri ios build -- --debug --target aarch64-apple-ios-sim
         env:
           CODE_SIGNING_ALLOWED: NO
           CODE_SIGNING_REQUIRED: NO
@@ -54,4 +57,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ios-app
-          path: src-tauri/gen/ios/build/Build/Products/Debug-iphoneos/*.app
+          # The output path for simulator builds differs from physical device builds
+          path: src-tauri/gen/apple/build/Build/Products/Debug-iphonesimulator/*.app
