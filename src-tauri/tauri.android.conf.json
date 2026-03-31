@@ -1,8 +1,5 @@
 {
   "bundle": {
-    "externalBin": [
-      "bin/yt-dlp",
-      "bin/ffmpeg"
-    ]
+    "externalBin": []
   }
 }

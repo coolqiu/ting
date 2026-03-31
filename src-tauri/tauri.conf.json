@@ -29,10 +29,6 @@
       "icons/icon.icns",
       "icons/icon.ico"
     ],
-    "externalBin": [
-      "yt-dlp",
-      "ffmpeg"
-    ],
     "windows": {
       "certificateThumbprint": null,
       "digestAlgorithm": "sha256",
