@@ -1018,12 +1018,16 @@ export default function StudyWorkspace() {
         document.addEventListener('selectionchange', handleSelectionChange);
         return () => {
             document.removeEventListener('selectionchange', handleSelectionChange);
-            if (timeout) clearTimeout(    const handleCopySelection = async (e: React.MouseEvent) => {
+            if (timeout) clearTimeout(timeout);
+        };
+    }, []);
+
+    const handleCopySelection = async (e: React.MouseEvent) => {
         e.stopPropagation();
         if (!selectionPopup || !selectionPopup.text) return;
         try {
             await navigator.clipboard.writeText(selectionPopup.text);
-            // Quick visual feedback (optional)
+            // Quick visual feedback
             setSelectionPopup(null);
         } catch (err) {
             console.error("Failed to copy:", err);
@@ -1093,7 +1097,44 @@ export default function StudyWorkspace() {
         }
     };
 
-    // ... (rest of helper functions omitted for brevity in this block, but they exist)
+    // Adjust a segment's start or end time by delta seconds
+    const handleAdjustSegmentTime = async (seg: ABSegment, field: 'start' | 'end', delta: number, e: React.MouseEvent) => {
+        e.stopPropagation();
+        let newStart = seg.start_secs;
+        let newEnd = seg.end_secs;
+        if (field === 'start') {
+            newStart = Math.max(0, seg.start_secs + delta);
+            if (newStart >= newEnd) return;
+        } else {
+            newEnd = Math.max(0, seg.end_secs + delta);
+            if (newEnd <= newStart) return;
+        }
+        const updated: ABSegment = { ...seg, start_secs: newStart, end_secs: newEnd };
+        try {
+            await invoke("update_segment", { segment: updated });
+            await pollState();
+            saveProgress();
+        } catch (err) {
+            console.error("[Segment] update failed:", err);
+        }
+    };
+
+    const handleTranscriptScroll = () => {
+        if (transcriptContainerRef.current && playbackRef.current?.material_id) {
+            sessionStorage.setItem(
+                `transcript_scroll_${playbackRef.current.material_id}`,
+                transcriptContainerRef.current.scrollTop.toString()
+            );
+        }
+    };
+
+    const progressPercent = duration > 0 ? (position / duration) * 100 : 0;
+    const tempAPercent = duration > 0 && tempA !== null ? (tempA / duration) * 100 : 0;
+    const volumeIcon = volume === 0 ? "🔇" : volume < 0.5 ? "🔉" : "🔊";
+    const adjBtnStyle: React.CSSProperties = {
+        border: "none", background: "transparent", color: "var(--text-secondary)",
+        cursor: "pointer", padding: "0 3px", fontSize: "11px", lineHeight: 1,
+    };
 
     return (
         <div 
@@ -1179,10 +1220,6 @@ export default function StudyWorkspace() {
                             {selectionPopup.translatedText}
                         </div>
                     )}
-                </div>
-            )}
-/>
-                    </div>
                 </div>
             )}
             {/* Main content */}
