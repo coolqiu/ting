@@ -27,14 +27,13 @@ jobs:
       - name: Install dependencies
         run: npm install
 
+      - name: Inject Team ID
+        run: |
+          # Inject the Apple Team ID from secrets into the config file
+          sed -i '' "s/__APPLE_DEVELOP_TEAM__/${{ secrets.APPLE_DEVELOPMENT_TEAM }}/g" src-tauri/tauri.conf.json
+
       - name: Check Tauri version
         run: npm run tauri -- --version
-
-      - name: Install iOS dependencies (CocoaPods)
-        run: |
-          # This step ensures CocoaPods are installed if the project was already initialized
-          # Note: If this is the first time, tauri ios init will handle it.
-          echo "Checking for CocoaPods..."
 
       - name: Initialize iOS project (if needed)
         run: |

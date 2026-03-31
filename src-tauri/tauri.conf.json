@@ -47,6 +47,9 @@
     "externalBin": [
       "bin/yt-dlp",
       "bin/ffmpeg"
-    ]
+    ],
+    "apple": {
+      "developmentTeam": "__APPLE_DEVELOP_TEAM__"
+    }
   }
 }
