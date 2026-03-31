@@ -46,14 +46,11 @@ jobs:
           # Extract UUID using a more robust regex for Apple's standard format
           PROFILE_UUID=$(grep -a -oE "[a-fA-F0-9]{8}-([a-fA-F0-9]{4}-){3}[a-fA-F0-9]{12}" ~/Library/MobileDevice/Provisioning\ Profiles/Ting.mobileprovision | head -n 1)
           if [ -z "$PROFILE_UUID" ]; then
-            echo "ERROR: Could not extract UUID from provisioning profile. Please check if the base64 string in GITHUB_SECRETS is correct."
+            echo "ERROR: Could not extract UUID from provisioning profile."
             exit 1
           fi
           echo "profile_uuid=$PROFILE_UUID" >> $GITHUB_OUTPUT
           echo "Installed Profile UUID: $PROFILE_UUID"
-
-      - name: Check Tauri version
-        run: npm run tauri -- --version
 
       - name: Initialize iOS project (if needed)
         run: |
@@ -61,15 +58,27 @@ jobs:
             npm run tauri ios init
           fi
 
-      - name: Build iOS App (Manual Sign Release)
-        # We force manual signing to avoid 'No Accounts' errors in CI
+      - name: Patch Xcode Project for Manual Signing
+        run: |
+          PBXPROJ="src-tauri/gen/apple/ting.xcodeproj/project.pbxproj"
+          echo "Patching $PBXPROJ..."
+          # Force Manual Provisioning Style
+          sed -i '' 's/ProvisioningStyle = Automatic;/ProvisioningStyle = Manual;/g' "$PBXPROJ"
+          # Force Manual Code Sign Style
+          sed -i '' 's/CODE_SIGN_STYLE = Automatic;/CODE_SIGN_STYLE = Manual;/g' "$PBXPROJ"
+          # Inject the Profile UUID and Team ID
+          sed -i '' "s/PROVISIONING_PROFILE_SPECIFIER = \"\";/PROVISIONING_PROFILE_SPECIFIER = \"${{ steps.install_profile.outputs.profile_uuid }}\";/g" "$PBXPROJ"
+          sed -i '' "s/DEVELOPMENT_TEAM = \"\";/DEVELOPMENT_TEAM = \"${{ secrets.APPLE_DEVELOPMENT_TEAM }}\";/g" "$PBXPROJ"
+          # Ensure Team ID is set in the build settings
+          sed -i '' "s/DevelopmentTeam = \"\";/DevelopmentTeam = \"${{ secrets.APPLE_DEVELOPMENT_TEAM }}\";/g" "$PBXPROJ"
+          echo "Patching complete."
+
+      - name: Build iOS App (Release)
         run: |
           npm run tauri ios build -- --target aarch64 -- \
             -allowProvisioningUpdates \
             CODE_SIGN_STYLE=Manual \
-            CODE_SIGN_IDENTITY="Apple Distribution" \
-            PROVISIONING_PROFILE_SPECIFIER="${{ steps.install_profile.outputs.profile_uuid }}" \
-            DEVELOPMENT_TEAM="${{ secrets.APPLE_DEVELOPMENT_TEAM }}"
+            CODE_SIGN_IDENTITY="Apple Distribution"
         env:
           APPLE_DEVELOPMENT_TEAM: ${{ secrets.APPLE_DEVELOPMENT_TEAM }}
 
