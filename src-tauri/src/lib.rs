@@ -100,6 +100,7 @@ pub fn run() {
                             }
                         }
                     })
+                    .build(app)?;
             }
 
             #[cfg(target_os = "ios")]
