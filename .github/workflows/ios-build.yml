@@ -45,7 +45,7 @@ jobs:
 
       - name: Build iOS App (Unsigned Simulator)
         # Building for simulator bypasses the mandatory code signing required for real devices in CI
-        run: npm run tauri ios build -- --debug --target aarch64-apple-ios-sim
+        run: npm run tauri ios build -- --debug --target aarch64-sim
         env:
           CODE_SIGNING_ALLOWED: NO
           CODE_SIGNING_REQUIRED: NO
