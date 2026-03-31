@@ -48,7 +48,7 @@
       "bin/yt-dlp",
       "bin/ffmpeg"
     ],
-    "apple": {
+    "iOS": {
       "developmentTeam": "__APPLE_DEVELOP_TEAM__"
     }
   }

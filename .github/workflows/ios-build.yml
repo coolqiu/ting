@@ -37,7 +37,7 @@ jobs:
 
       - name: Initialize iOS project (if needed)
         run: |
-          if [ ! -d "src-tauri/gen/apple" ]; then
+          if [ ! -d "src-tauri/gen/ios" ]; then
             npm run tauri ios init
           fi
 
@@ -54,4 +54,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ios-app
-          path: src-tauri/gen/apple/build/Build/Products/Debug-iphoneos/*.app
+          path: src-tauri/gen/ios/build/Build/Products/Debug-iphoneos/*.app
