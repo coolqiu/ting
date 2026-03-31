@@ -43,15 +43,16 @@ jobs:
         run: |
           mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
           echo "${{ secrets.PROVISIONING_PROFILE }}" | tr -d '\r\n ' | base64 --decode > profile_temp.mobileprovision
-          
-          # Extract UUID using macOS native security tool for 100% accuracy
-          PROFILE_UUID=$(security cms -D -i profile_temp.mobileprovision | grep -aA1 "UUID" | grep -oE "[-A-Z0-9]{36}")
-          
+          # Restore the robust regex that worked in V20/V21
+          PROFILE_UUID=$(grep -a -oE "[a-fA-F0-9]{8}-([a-fA-F0-9]{4}-){3}[a-fA-F0-9]{12}" profile_temp.mobileprovision | head -n 1)
           if [ -z "$PROFILE_UUID" ]; then
-            echo "ERROR: Could not extract UUID from provisioning profile using security tool."
+            echo "ERROR: Could not extract UUID from provisioning profile. Falling back to key search..."
+            PROFILE_UUID=$(grep -aA1 "UUID" profile_temp.mobileprovision | grep -oE "[-A-Z0-9]{36}" | head -n 1)
+          fi
+          if [ -z "$PROFILE_UUID" ]; then
+            echo "ERROR: Final attempt to extract UUID failed."
             exit 1
           fi
-          
           # Rename to the standard {UUID}.mobileprovision format
           cp profile_temp.mobileprovision ~/Library/MobileDevice/Provisioning\ Profiles/$PROFILE_UUID.mobileprovision
           echo "profile_uuid=$PROFILE_UUID" >> $GITHUB_OUTPUT
