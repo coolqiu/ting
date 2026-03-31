@@ -118,4 +118,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ios-release-ipa
-          path: src-tauri/gen/apple/build/Build/Products/Release-iphoneos/*.ipa
+          path: src-tauri/gen/apple/build/arm64/*.ipa
