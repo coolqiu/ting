@@ -45,7 +45,10 @@
       "icons/icon.ico"
     ],
     "iOS": {
-      "developmentTeam": "__APPLE_DEVELOP_TEAM__"
+      "developmentTeam": "__APPLE_DEVELOP_TEAM__",
+      "frameworks": [
+        "Accelerate"
+      ]
     }
   }
 }
