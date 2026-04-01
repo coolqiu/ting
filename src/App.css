@@ -1451,6 +1451,7 @@ input:focus {
 .transcript-word, .transcript-container, .no-native-callout {
   -webkit-touch-callout: none !important;
   -webkit-user-select: text !important;
+  -webkit-user-modify: read-only !important; /* Build 68: Extra signal for iOS to skip edit menu */
   user-select: text !important;
 }
 

@@ -990,8 +990,14 @@ export default function StudyWorkspace() {
             }, 150);
         };
 
-        const handleLift = () => {
+        const handleLift = (e?: any) => {
             setIsSelecting(false);
+
+            // Build 68 Fix: If the lift happens inside our popup, don't preventDefault
+            // Otherwise the buttons (Copy, Translate) won't receive click events on iOS
+            if (e?.target && (e.target as HTMLElement).closest('.selection-popup')) {
+                return;
+            }
             
             // On lift, if there's a selection, trigger the popup show logic
             const sel = window.getSelection();
@@ -1000,11 +1006,16 @@ export default function StudyWorkspace() {
             const range = sel.getRangeAt(0);
 
             // Refinement (v67): Ensure the selection originated from transcript content
-            // Selectively show OUR menu only for transcript-words
             const startNode = range.startContainer;
             const startEl = startNode.nodeType === 3 ? startNode.parentElement : startNode as HTMLElement;
             if (!startEl?.closest('.transcript-text') && !startEl?.closest('.transcript-word')) {
                 return;
+            }
+
+            // CRITICAL: Prevent the default system behavior (native menu)
+            if (e && e.cancelable) {
+                e.preventDefault();
+                e.stopPropagation();
             }
 
             const rect = range.getBoundingClientRect();
@@ -1037,14 +1048,24 @@ export default function StudyWorkspace() {
             }
         };
 
+        const preventDefault = (e: Event) => {
+            const target = e.target as HTMLElement;
+            if (target && target.closest('.no-native-callout')) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+        };
+
         document.addEventListener('selectionchange', handleSelectionChange);
         document.addEventListener('mouseup', handleLift);
-        document.addEventListener('touchend', handleLift);
+        document.addEventListener('touchend', handleLift, { passive: false });
+        document.addEventListener('contextmenu', preventDefault, { capture: true });
 
         return () => {
             document.removeEventListener('selectionchange', handleSelectionChange);
             document.removeEventListener('mouseup', handleLift);
             document.removeEventListener('touchend', handleLift);
+            document.removeEventListener('contextmenu', preventDefault, { capture: true });
             if (timeout) clearTimeout(timeout);
         };
     }, []);
@@ -1194,7 +1215,7 @@ const progressPercent = duration > 0 ? (position / duration) * 100 : 0;
                     style={{
                         position: "fixed",
                         left: selectionPopup.x,
-                        top: selectionPopup.y - 12,
+                        top: selectionPopup.y - 48,
                         transform: "translateX(-50%) translateY(-100%)",
                         zIndex: 10000,
                         animation: "popup-spring 0.2s ease-out"
