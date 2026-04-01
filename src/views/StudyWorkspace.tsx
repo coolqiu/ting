@@ -101,6 +101,7 @@ function generateId(): string {
 interface SelectionPopup {
     x: number;
     y: number;
+    height?: number; // Captured for precise positioning below text
     text: string;
     start: number;
     end: number;
