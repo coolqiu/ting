@@ -990,36 +990,34 @@ export default function StudyWorkspace() {
             }, 150);
         };
 
+        const isiOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+
         const handleLift = (e?: any) => {
             setIsSelecting(false);
 
             // Build 68 Fix: If the lift happens inside our popup, don't preventDefault
-            // Otherwise the buttons (Copy, Translate) won't receive click events on iOS
             if (e?.target && (e.target as HTMLElement).closest('.selection-popup')) {
                 return;
             }
             
-            // On lift, if there's a selection, trigger the popup show logic
             const sel = window.getSelection();
             if (!sel || sel.isCollapsed || sel.rangeCount === 0) return;
 
             const range = sel.getRangeAt(0);
-
-            // Refinement (v67): Ensure the selection originated from transcript content
             const startNode = range.startContainer;
             const startEl = startNode.nodeType === 3 ? startNode.parentElement : startNode as HTMLElement;
             if (!startEl?.closest('.transcript-text') && !startEl?.closest('.transcript-word')) {
                 return;
             }
 
-            // CRITICAL: Prevent the default system behavior (native menu)
-            if (e && e.cancelable) {
+            // CRITICAL (Build 69): Only preventDefault for non-iOS devices.
+            // On iPhone, we want the native "Copy|Lookup" menu to coexist.
+            if (!isiOS && e && e.cancelable) {
                 e.preventDefault();
                 e.stopPropagation();
             }
 
             const rect = range.getBoundingClientRect();
-            
             if (rect.width === 0 || rect.height === 0) return;
 
             const endNode = range.endContainer;
@@ -1033,7 +1031,10 @@ export default function StudyWorkspace() {
                 const eMs = parseInt(closestEnd.dataset.end || "0", 10);
                 const realStart = Math.min(sMs, eMs);
                 const realEnd = Math.max(sMs, eMs);
-                const text = sel.toString().trim();
+
+                // Build 69: Extract text directly from transcript data to preserve formatting & spaces
+                const selectedWords = words.filter(w => w.start_ms >= realStart && w.start_ms <= realEnd);
+                const text = selectedWords.map(w => w.word).join(" ");
 
                 if (text) {
                     setSelectionPopup({
@@ -1049,6 +1050,7 @@ export default function StudyWorkspace() {
         };
 
         const preventDefault = (e: Event) => {
+            if (isiOS) return; // Build 69: Don't suppress contextmenu on iPhone
             const target = e.target as HTMLElement;
             if (target && target.closest('.no-native-callout')) {
                 e.preventDefault();
@@ -1198,8 +1200,10 @@ const progressPercent = duration > 0 ? (position / duration) * 100 : 0;
                 setSelectionPopup(null);
             }}
             onContextMenu={(e) => {
-                // Determine if we should suppress the native context menu
-                // We only suppress it for the transcript area where we have a custom menu
+                // iPhone Strategy (Build 69): Leave native menu alone.
+                const isiOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+                if (isiOS) return;
+
                 const target = e.target as HTMLElement;
                 if (target.closest('.no-native-callout')) {
                     e.preventDefault();
@@ -1215,8 +1219,8 @@ const progressPercent = duration > 0 ? (position / duration) * 100 : 0;
                     style={{
                         position: "fixed",
                         left: selectionPopup.x,
-                        top: selectionPopup.y - 48,
-                        transform: "translateX(-50%) translateY(-100%)",
+                        top: selectionPopup.y - 68, // Build 69: Higher offset for iOS to coexist with native menu
+                        transform: "translateX(-50%) translateY(-100%)", 
                         zIndex: 10000,
                         animation: "popup-spring 0.2s ease-out"
                     }}
@@ -1232,15 +1236,21 @@ const progressPercent = duration > 0 ? (position / duration) * 100 : 0;
                         maxWidth: "97vw",
                         scrollbarWidth: "none"
                     }}>
-                        <button
-                            className="btn btn-ghost btn-sm"
-                            onClick={handleCopySelection}
-                            title={t("common.copy")}
-                            style={{ padding: "8px 12px", minWidth: "44px", borderRadius: "12px", color: "#fff" }}
-                        >
-                            📋 <span style={{ marginLeft: "4px", fontSize: "12px", color: "#fff" }}>{window.innerWidth > 400 ? t("common.copy") : "复制" }</span>
-                        </button>
-                        <div style={{ width: "1px", height: "20px", background: "rgba(255,255,255,0.2)", margin: "0 2px" }} />
+                        {/* Build 69 Strategy: Hide Copy/Translate on iPhone to reduce clutter since native menu does it */}
+                        {!/iPad|iPhone|iPod/.test(navigator.userAgent) && (
+                            <>
+                                <button
+                                    className="btn btn-ghost btn-sm"
+                                    onClick={handleCopySelection}
+                                    title={t("common.copy")}
+                                    style={{ padding: "8px 12px", minWidth: "44px", borderRadius: "12px", color: "#fff" }}
+                                >
+                                    📋 <span style={{ marginLeft: "4px", fontSize: "12px", color: "#fff" }}>{window.innerWidth > 400 ? t("common.copy") : "复制" }</span>
+                                </button>
+                                <div style={{ width: "1px", height: "20px", background: "rgba(255,255,255,0.2)", margin: "0 2px" }} />
+                            </>
+                        )}
+
                         <button
                             className="btn btn-ghost btn-sm"
                             onClick={handleShadowSelection}
@@ -1255,14 +1265,17 @@ const progressPercent = duration > 0 ? (position / duration) * 100 : 0;
                         >
                             <span style={{ color: "#fab1a0" }}>📌</span> <span style={{ marginLeft: "4px", fontSize: "12px", fontWeight: 500 }}>{window.innerWidth > 400 ? t("workspace_v2.add_selection_as_segment") : "复读" }</span>
                         </button>
-                        <button
-                            className="btn btn-ghost btn-sm"
-                            onClick={handleTranslateSelection}
-                            disabled={selectionPopup.isTranslating}
-                            style={{ padding: "8px 12px", borderRadius: "12px", color: "#fff", whiteSpace: "nowrap" }}
-                        >
-                            <span style={{ color: "#81ecec" }}>🌍</span> <span style={{ marginLeft: "4px", fontSize: "12px", fontWeight: 500 }}>{selectionPopup.isTranslating ? "..." : (window.innerWidth > 400 ? t("workspace_v2.translate_selection") : "翻译") }</span>
-                        </button>
+
+                        {!/iPad|iPhone|iPod/.test(navigator.userAgent) && (
+                            <button
+                                className="btn btn-ghost btn-sm"
+                                onClick={handleTranslateSelection}
+                                disabled={selectionPopup.isTranslating}
+                                style={{ padding: "8px 12px", borderRadius: "12px", color: "#fff", whiteSpace: "nowrap" }}
+                            >
+                                <span style={{ color: "#81ecec" }}>🌍</span> <span style={{ marginLeft: "4px", fontSize: "12px", fontWeight: 500 }}>{selectionPopup.isTranslating ? "..." : (window.innerWidth > 400 ? t("workspace_v2.translate_selection") : "翻译") }</span>
+                            </button>
+                        )}
                     </div>
 
                     {selectionPopup.translatedText && (

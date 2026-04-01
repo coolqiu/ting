@@ -286,7 +286,15 @@ export function SpeakingView() {
                             </div>
                         </div>
                     ) : (
-                        <p style={{ fontSize: "17px", lineHeight: 1.8, color: "var(--text-primary)", fontWeight: 500 }}>
+                        <p style={{ 
+                            fontSize: "17px", 
+                            lineHeight: 1.8, 
+                            color: "var(--text-primary)", 
+                            fontWeight: 500,
+                            wordBreak: "break-word",
+                            overflowWrap: "break-word",
+                            textAlign: "center"
+                        }}>
                             {referenceText}
                         </p>
                     )}
