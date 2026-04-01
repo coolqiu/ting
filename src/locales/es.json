@@ -23,6 +23,7 @@
         "delete": "Eliminar",
         "export": "Exportar",
         "clear": "Borrar",
+        "copy": "Copiar",
         "appName": "Ting"
     },
     "library": {

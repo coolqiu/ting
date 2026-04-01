@@ -1439,21 +1439,21 @@ input:focus {
   }
 }
 
-/* Global: Disable system selection menu callout on mobile to use our custom menu exclusively */
+/* Global: Disable system selection menu callout on mobile to use our custom menu exclusively. 
+   Also prevent accidental full-screen selection by disabling selection on non-content areas. */
 *:not(input):not(textarea) {
-  -webkit-touch-callout: none !important;
+  -webkit-touch-callout: none;
   -webkit-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
   user-select: none;
 }
 
-/* Explicitly enable only text selection area for transcript */
-.transcript-word, .transcript-container {
-  -webkit-touch-callout: default !important; /* Required for magnifying glass and handles on iOS */
+/* Explicitly enable text selection for transcript but SUPPRESS native callout menu */
+.transcript-word, .transcript-container, .no-native-callout {
+  -webkit-touch-callout: none !important;
   -webkit-user-select: text !important;
   user-select: text !important;
 }
+
 
 /* Premium Selection Popup Overlay (Build 63) */
 .selection-popup {
@@ -1502,3 +1502,56 @@ input:focus {
 .progress-card { background: var(--bg-secondary); border: 1px solid var(--border-medium); border-radius: 20px; padding: 32px; width: 90%; max-width: 360px; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.4); }
 .progress-bar-container { width: 100%; height: 10px; background: var(--bg-tertiary); border-radius: 5px; margin: 20px 0; overflow: hidden; }
 .progress-bar-fill { height: 100%; background: var(--accent-primary); transition: width 0.3s ease; }
+
+/* ============================================ */
+/* Selection Popup (Build 67 Premium)           */
+/* ============================================ */
+.selection-popup.premium-glass {
+  background: rgba(26, 29, 39, 0.7) !important;
+  backdrop-filter: blur(20px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.05) !important;
+  border-radius: 16px !important;
+  padding: 4px !important;
+  animation: popup-spring 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.selection-popup.premium-glass::after {
+  content: "";
+  position: absolute;
+  bottom: -6px; /* Triangle at the bottom now */
+  left: 50%;
+  transform: translateX(-50%);
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-top: 6px solid rgba(26, 29, 39, 0.7);
+}
+
+@keyframes popup-spring {
+  0% { transform: translateX(-50%) translateY(-100%) scale(0.5) translateY(10px); opacity: 0; }
+  100% { transform: translateX(-50%) translateY(-100%) scale(1) translateY(0); opacity: 1; }
+}
+
+.selection-popup .btn-ghost:hover {
+  background: rgba(255, 255, 255, 0.1) !important;
+  transform: translateY(-1px);
+}
+
+.selection-popup .btn-ghost:active {
+  transform: translateY(0);
+}
+
+/* Suppression of native iOS menu */
+.no-native-callout, .no-native-callout * {
+  -webkit-touch-callout: none !important;
+}
+.no-native-callout {
+  -webkit-user-select: text !important;
+  user-select: text !important;
+}
+
+.no-native-callout * {
+  -webkit-touch-callout: none !important;
+}
+

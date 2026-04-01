@@ -21,7 +21,7 @@ const TranscriptLine = memo(({
     return (
         <p
             id={isActive ? "active-transcript-line" : undefined}
-            className={`transcript-line ${isActive ? 'active-line' : ''}`}
+            className={`transcript-line no-native-callout ${isActive ? 'active-line' : ''}`}
             style={{
                 fontWeight: isActive ? 700 : 400,
                 color: isActive ? 'var(--text-primary)' : 'var(--text-secondary)',
@@ -72,7 +72,7 @@ const TranscriptLine = memo(({
                                     cursor: "pointer",
                                     padding: "2px 0px",
                                     borderRadius: "4px",
-                                    WebkitTouchCallout: "default", /* Explicitly allow for selection handles */
+                                    WebkitTouchCallout: "none", /* Supress native system menu */
                                     userSelect: "text"
                                 }}
                             >
@@ -144,6 +144,7 @@ export default function StudyWorkspace() {
     const [speed, setSpeed] = useState(1.0);
     const [currentMaterial, setCurrentMaterial] = useState<LearningMaterial | null>(null);
     const [tempA, setTempA] = useState<number | null>(null);
+    const [isSelecting, setIsSelecting] = useState(false);
 
     // Right sidebar tab state
     const [activeTab, setActiveTab] = useState<'segments' | 'transcript' | 'dictation'>(() => {
@@ -972,54 +973,78 @@ export default function StudyWorkspace() {
                 return;
             }
 
+            // Mark as selecting to hide the popup while dragging
+            setIsSelecting(true);
+
             // Debounce the popup display until they stop dragging handles
             timeout = setTimeout(() => {
                 // Check if the selection was cleared since the timeout started
                 const currentSel = window.getSelection();
-                if (!currentSel || currentSel.isCollapsed || currentSel.rangeCount === 0) return;
-
-                const range = currentSel.getRangeAt(0);
-                const rect = range.getBoundingClientRect();
-                
-                // Ensure rect is valid (sometimes getBoundingClientRect returns 0,0 for whitespace across lines)
-                if (rect.width === 0 || rect.height === 0) return;
-
-                // Find the word nodes
-                const startNode = range.startContainer;
-                const endNode = range.endContainer;
-                
-                const startEl = startNode.nodeType === 3 ? startNode.parentElement : startNode as HTMLElement;
-                const endEl = endNode.nodeType === 3 ? endNode.parentElement : endNode as HTMLElement;
-
-                const closestStart = startEl?.closest('.transcript-word') as HTMLElement;
-                const closestEnd = endEl?.closest('.transcript-word') as HTMLElement;
-
-                if (closestStart && closestEnd) {
-                    const sMs = parseInt(closestStart.dataset.start || "0", 10);
-                    const eMs = parseInt(closestEnd.dataset.end || "0", 10);
-                    const realStart = Math.min(sMs, eMs);
-                    const realEnd = Math.max(sMs, eMs);
-                    const text = currentSel.toString().trim();
-
-                    if (text) {
-                        setSelectionPopup({
-                            x: rect.left + rect.width / 2,
-                            y: rect.top,
-                            height: rect.height, // Captured for bottom positioning
-                            text: text,
-                            start: realStart,
-                            end: realEnd
-                        });
-                        // Visual highlighting is already handled by native browser selection!
-                        // No need to set selectedWordRange anymore!
-                    }
+                if (!currentSel || currentSel.isCollapsed || currentSel.rangeCount === 0) {
+                    setIsSelecting(false);
+                    return;
                 }
-            }, 150); // Fast 150ms delay for native-like feedback
+
+                // If they are still touching/dragging, don't show yet (handled by lift listeners)
+                // However, for desktop mouse, we can show it after a small pause of no movement
+            }, 150);
+        };
+
+        const handleLift = () => {
+            setIsSelecting(false);
+            
+            // On lift, if there's a selection, trigger the popup show logic
+            const sel = window.getSelection();
+            if (!sel || sel.isCollapsed || sel.rangeCount === 0) return;
+
+            const range = sel.getRangeAt(0);
+
+            // Refinement (v67): Ensure the selection originated from transcript content
+            // Selectively show OUR menu only for transcript-words
+            const startNode = range.startContainer;
+            const startEl = startNode.nodeType === 3 ? startNode.parentElement : startNode as HTMLElement;
+            if (!startEl?.closest('.transcript-text') && !startEl?.closest('.transcript-word')) {
+                return;
+            }
+
+            const rect = range.getBoundingClientRect();
+            
+            if (rect.width === 0 || rect.height === 0) return;
+
+            const endNode = range.endContainer;
+            const endEl = endNode.nodeType === 3 ? endNode.parentElement : endNode as HTMLElement;
+
+            const closestStart = startEl?.closest('.transcript-word') as HTMLElement;
+            const closestEnd = endEl?.closest('.transcript-word') as HTMLElement;
+
+            if (closestStart && closestEnd) {
+                const sMs = parseInt(closestStart.dataset.start || "0", 10);
+                const eMs = parseInt(closestEnd.dataset.end || "0", 10);
+                const realStart = Math.min(sMs, eMs);
+                const realEnd = Math.max(sMs, eMs);
+                const text = sel.toString().trim();
+
+                if (text) {
+                    setSelectionPopup({
+                        x: rect.left + rect.width / 2,
+                        y: rect.top,
+                        height: rect.height,
+                        text: text,
+                        start: realStart,
+                        end: realEnd
+                    });
+                }
+            }
         };
 
         document.addEventListener('selectionchange', handleSelectionChange);
+        document.addEventListener('mouseup', handleLift);
+        document.addEventListener('touchend', handleLift);
+
         return () => {
             document.removeEventListener('selectionchange', handleSelectionChange);
+            document.removeEventListener('mouseup', handleLift);
+            document.removeEventListener('touchend', handleLift);
             if (timeout) clearTimeout(timeout);
         };
     }, []);
@@ -1122,6 +1147,9 @@ export default function StudyWorkspace() {
     };
 
     const handleTranscriptScroll = () => {
+        // Build 67: Hide selection popup immediately on scroll to prevent "floating"
+        if (selectionPopup) setSelectionPopup(null);
+        
         if (transcriptContainerRef.current && playbackRef.current?.material_id) {
             sessionStorage.setItem(
                 `transcript_scroll_${playbackRef.current.material_id}`,
@@ -1130,7 +1158,7 @@ export default function StudyWorkspace() {
         }
     };
 
-    const progressPercent = duration > 0 ? (position / duration) * 100 : 0;
+const progressPercent = duration > 0 ? (position / duration) * 100 : 0;
     const tempAPercent = duration > 0 && tempA !== null ? (tempA / duration) * 100 : 0;
     const volumeIcon = volume === 0 ? "🔇" : volume < 0.5 ? "🔉" : "🔊";
     const adjBtnStyle: React.CSSProperties = {
@@ -1141,27 +1169,35 @@ export default function StudyWorkspace() {
     return (
         <div 
             onClick={() => {
-                // iPhone Guard: If there is an active selection range, do NOT close the popup.
-                // This prevents the 'click' event that often follows a selection end on iOS from clearing the UI.
+                // If dragging or selecting text, don't clear the popup yet
                 const sel = window.getSelection();
                 if (sel && !sel.isCollapsed) return;
+                
+                // Clear selection popup when clicking on empty background
                 setSelectionPopup(null);
             }}
-            /* Suppress native context menu while allowing selection handles (water drops) to appear */
-            onContextMenu={(e) => e.preventDefault()}
+            onContextMenu={(e) => {
+                // Determine if we should suppress the native context menu
+                // We only suppress it for the transcript area where we have a custom menu
+                const target = e.target as HTMLElement;
+                if (target.closest('.no-native-callout')) {
+                    e.preventDefault();
+                }
+            }}
             style={{ display: "flex", flexDirection: "column", height: "100%", overflow: "hidden", position: "relative" }}
         >
-            {/* Selection Popup - Build 63 Premium Horizontal Version */}
-            {selectionPopup && (
+            {/* Selection Popup - Build 67 Premium Version */}
+            {(selectionPopup && !isSelecting) && (
                 <div
-                    className="selection-popup fade-in"
+                    className="selection-popup premium-glass fade-in"
                     onMouseDown={(e) => e.stopPropagation()}
                     style={{
                         position: "fixed",
                         left: selectionPopup.x,
-                        top: selectionPopup.y + (selectionPopup.height || 40) + 12,
-                        transform: "translateX(-50%)", // No translateY(-100%) anymore
+                        top: selectionPopup.y - 12,
+                        transform: "translateX(-50%) translateY(-100%)",
                         zIndex: 10000,
+                        animation: "popup-spring 0.2s ease-out"
                     }}
                 >
                     <div style={{
@@ -1178,10 +1214,10 @@ export default function StudyWorkspace() {
                         <button
                             className="btn btn-ghost btn-sm"
                             onClick={handleCopySelection}
-                            title={String(t("common.copy"))}
+                            title={t("common.copy")}
                             style={{ padding: "8px 12px", minWidth: "44px", borderRadius: "12px", color: "#fff" }}
                         >
-                            📋 <span style={{ marginLeft: "4px", fontSize: "12px", color: "#fff" }}>{window.innerWidth > 400 ? String(t("common.copy")) : "复制" }</span>
+                            📋 <span style={{ marginLeft: "4px", fontSize: "12px", color: "#fff" }}>{window.innerWidth > 400 ? t("common.copy") : "复制" }</span>
                         </button>
                         <div style={{ width: "1px", height: "20px", background: "rgba(255,255,255,0.2)", margin: "0 2px" }} />
                         <button
@@ -1663,7 +1699,7 @@ export default function StudyWorkspace() {
 
                             {activeTab === 'transcript' && (
                                 <div
-                                    className="ab-sidebar-content"
+                                    className="ab-sidebar-content no-native-callout"
                                     ref={transcriptContainerRef}
                                     onScroll={handleTranscriptScroll}
                                     style={{

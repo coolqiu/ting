@@ -22,6 +22,7 @@
         "switchUser": "Switch User",
         "delete": "Delete",
         "export": "Export",
+        "copy": "Copy",
         "clear": "Clear",
         "appName": "Ting"
     },

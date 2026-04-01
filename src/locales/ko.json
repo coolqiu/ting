@@ -22,7 +22,8 @@
         "switchUser": "사용자 전환",
         "delete": "삭제",
         "export": "내보내기",
-        "clear": "지우기",
+        "clear": "초기화",
+        "copy": "복사",
         "appName": "Ting"
     },
     "library": {

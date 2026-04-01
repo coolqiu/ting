@@ -22,7 +22,8 @@
         "switchUser": "Benutzer wechseln",
         "delete": "Löschen",
         "export": "Exportieren",
-        "clear": "Löschen",
+        "clear": "Leeren",
+        "copy": "Kopieren",
         "appName": "Ting"
     },
     "library": {

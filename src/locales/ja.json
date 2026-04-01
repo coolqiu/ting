@@ -23,6 +23,7 @@
         "delete": "削除",
         "export": "エクスポート",
         "clear": "クリア",
+        "copy": "コピー",
         "appName": "Ting"
     },
     "library": {

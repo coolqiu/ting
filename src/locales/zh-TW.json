@@ -22,7 +22,8 @@
         "switchUser": "切換用戶",
         "delete": "刪除",
         "export": "匯出",
-        "clear": "清理",
+        "clear": "清除",
+        "copy": "複製",
         "appName": "聽多多"
     },
     "library": {
