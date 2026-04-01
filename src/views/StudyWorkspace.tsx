@@ -1004,6 +1004,7 @@ export default function StudyWorkspace() {
                         setSelectionPopup({
                             x: rect.left + rect.width / 2,
                             y: rect.top,
+                            height: rect.height, // Captured for bottom positioning
                             text: text,
                             start: realStart,
                             end: realEnd
@@ -1157,8 +1158,8 @@ export default function StudyWorkspace() {
                     style={{
                         position: "fixed",
                         left: selectionPopup.x,
-                        top: selectionPopup.y - 12,
-                        transform: "translateX(-50%) translateY(-100%)",
+                        top: selectionPopup.y + (selectionPopup.height || 40) + 12,
+                        transform: "translateX(-50%)", // No translateY(-100%) anymore
                         zIndex: 10000,
                     }}
                 >
@@ -1170,16 +1171,16 @@ export default function StudyWorkspace() {
                         padding: "2px",
                         flexWrap: "nowrap",
                         overflowX: "auto",
-                        maxWidth: "95vw",
+                        maxWidth: "97vw",
                         scrollbarWidth: "none"
                     }}>
                         <button
                             className="btn btn-ghost btn-sm"
                             onClick={handleCopySelection}
-                            title={t("common.copy")}
+                            title={String(t("common.copy"))}
                             style={{ padding: "8px 12px", minWidth: "44px", borderRadius: "12px", color: "#fff" }}
                         >
-                            📋 <span style={{ marginLeft: "4px", fontSize: "12px", color: "#fff" }}>{window.innerWidth > 400 ? t("common.copy") : "" }</span>
+                            📋 <span style={{ marginLeft: "4px", fontSize: "12px", color: "#fff" }}>{window.innerWidth > 400 ? String(t("common.copy")) : "复制" }</span>
                         </button>
                         <div style={{ width: "1px", height: "20px", background: "rgba(255,255,255,0.2)", margin: "0 2px" }} />
                         <button
@@ -1258,7 +1259,7 @@ export default function StudyWorkspace() {
                             <div className="player-info">
                                 <div className="file-icon">🎵</div>
                                 <div className="file-details">
-                                    <div className="file-name" title={currentMaterial?.title || playback.file_name}>{currentMaterial?.title || playback.file_name}</div>
+                                    <div className="file-name" title={decodeURIComponent(currentMaterial?.title || playback.file_name)}>{decodeURIComponent(currentMaterial?.title || playback.file_name)}</div>
                                     <div className="file-meta">
                                         {duration > 0
                                             ? `${t("library.duration")} ${formatTime(duration)}`

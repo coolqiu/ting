@@ -39,7 +39,7 @@
       "frameworks": [
         "Accelerate"
       ],
-      "bundleVersion": "63",
+      "bundleVersion": "65",
       "infoPlist": "./Info.ios.plist"
     }
   }

@@ -55,7 +55,7 @@ export function LibraryView() {
         if (!selected) return;
 
         const selectedPath = typeof selected === 'string' ? selected : selected[0];
-        const fileName = (selectedPath.split('/').pop() || selectedPath.split('\\').pop() || 'unknown.wav').split('?')[0];
+        const fileName = decodeURIComponent((selectedPath.split('/').pop() || selectedPath.split('\\').pop() || 'unknown.wav').split('?')[0]);
 
         try {
             setIsImporting(true);
@@ -222,7 +222,7 @@ export function LibraryView() {
                             }}>
                                 <div style={{ flex: 1, minWidth: 0, marginBottom: "8px" }}>
                                     <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "4px" }}>
-                                        <h3 style={{ margin: 0, fontSize: "16px", fontWeight: 600 }}>{mat.title}</h3>
+                                        <h3 style={{ margin: 0, fontSize: "16px", fontWeight: 600 }}>{decodeURIComponent(mat.title)}</h3>
                                         {mat.progress_secs !== null && mat.progress_secs > 0 && (
                                             <span style={{
                                                 background: "rgba(var(--accent-primary-rgb), 0.1)",
