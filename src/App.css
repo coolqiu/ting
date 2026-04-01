@@ -1448,29 +1448,30 @@ input:focus {
   user-select: none;
 }
 
-/* Explicitly enable only text selection area for transcript, but still no system menu */
+/* Explicitly enable only text selection area for transcript */
 .transcript-word, .transcript-container {
-  -webkit-touch-callout: none !important;
+  -webkit-touch-callout: default !important; /* Required for magnifying glass and handles on iOS */
   -webkit-user-select: text !important;
   user-select: text !important;
 }
 
-/* Premium Selection Popup Overlay (Build 60) */
+/* Premium Selection Popup Overlay (Build 63) */
 .selection-popup {
   pointer-events: auto;
   user-select: none;
-  filter: drop-shadow(0 12px 32px rgba(0,0,0,0.5));
+  filter: drop-shadow(0 12px 48px rgba(0,0,0,0.7));
   transition: opacity var(--transition-fast) ease-out, transform var(--transition-bounce) ease-out;
-  background: rgba(45, 45, 60, 0.85); /* Semi-transparent dark bg */
-  -webkit-backdrop-filter: blur(16px);
-  backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  border-radius: 16px;
-  padding: 6px;
+  background: rgba(28, 28, 40, 0.94); /* Darker and more premium */
+  -webkit-backdrop-filter: blur(25px);
+  backdrop-filter: blur(25px);
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-radius: 20px;
+  padding: 8px 12px;
   display: flex !important;
   flex-direction: row !important;
   align-items: center;
-  gap: 4px;
+  gap: 8px;
+  z-index: 10000; /* Extremely high to ensure visibility */
 }
 
 /* Style for our custom word selection */

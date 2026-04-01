@@ -1012,7 +1012,7 @@ export default function StudyWorkspace() {
                         // No need to set selectedWordRange anymore!
                     }
                 }
-            }, 500); // 500ms delay after interaction finishes
+            }, 150); // Fast 150ms delay for native-like feedback
         };
 
         document.addEventListener('selectionchange', handleSelectionChange);
@@ -1139,11 +1139,17 @@ export default function StudyWorkspace() {
     return (
         <div 
             onClick={() => {
+                // iPhone Guard: If there is an active selection range, do NOT close the popup.
+                // This prevents the 'click' event that often follows a selection end on iOS from clearing the UI.
+                const sel = window.getSelection();
+                if (sel && !sel.isCollapsed) return;
                 setSelectionPopup(null);
             }}
+            /* Suppress native context menu while allowing selection handles (water drops) to appear */
+            onContextMenu={(e) => e.preventDefault()}
             style={{ display: "flex", flexDirection: "column", height: "100%", overflow: "hidden", position: "relative" }}
         >
-            {/* Selection Popup - Build 60 Premium Horizontal Version */}
+            {/* Selection Popup - Build 63 Premium Horizontal Version */}
             {selectionPopup && (
                 <div
                     className="selection-popup fade-in"
@@ -1153,7 +1159,7 @@ export default function StudyWorkspace() {
                         left: selectionPopup.x,
                         top: selectionPopup.y - 12,
                         transform: "translateX(-50%) translateY(-100%)",
-                        zIndex: 2000,
+                        zIndex: 10000,
                     }}
                 >
                     <div style={{
@@ -1173,22 +1179,22 @@ export default function StudyWorkspace() {
                             title={t("common.copy")}
                             style={{ padding: "8px 12px", minWidth: "44px", borderRadius: "12px", color: "#fff" }}
                         >
-                            📋 <span style={{ marginLeft: "4px", fontSize: "12px" }}>{window.innerWidth > 400 ? t("common.copy") : "" }</span>
+                            📋 <span style={{ marginLeft: "4px", fontSize: "12px", color: "#fff" }}>{window.innerWidth > 400 ? t("common.copy") : "" }</span>
                         </button>
-                        <div style={{ width: "1px", height: "20px", background: "rgba(255,255,255,0.1)", margin: "0 2px" }} />
+                        <div style={{ width: "1px", height: "20px", background: "rgba(255,255,255,0.2)", margin: "0 2px" }} />
                         <button
                             className="btn btn-ghost btn-sm"
                             onClick={handleShadowSelection}
-                            style={{ padding: "8px 12px", borderRadius: "12px", color: "var(--accent-primary)", whiteSpace: "nowrap" }}
+                            style={{ padding: "8px 12px", borderRadius: "12px", color: "#fff", whiteSpace: "nowrap" }}
                         >
-                            🎧 <span style={{ marginLeft: "4px", fontSize: "12px" }}>{window.innerWidth > 400 ? t("workspace_v2.shadow_selection") : "跟读" }</span>
+                            <span style={{ color: "#a29bfe" }}>🎧</span> <span style={{ marginLeft: "4px", fontSize: "12px", fontWeight: 500 }}>{window.innerWidth > 400 ? t("workspace_v2.shadow_selection") : "跟读" }</span>
                         </button>
                         <button
                             className="btn btn-ghost btn-sm"
                             onClick={handleAddSelectionAsSegment}
                             style={{ padding: "8px 12px", borderRadius: "12px", color: "#fff", whiteSpace: "nowrap" }}
                         >
-                            📌 <span style={{ marginLeft: "4px", fontSize: "12px" }}>{window.innerWidth > 400 ? t("workspace_v2.add_selection_as_segment") : "加入" }</span>
+                            <span style={{ color: "#fab1a0" }}>📌</span> <span style={{ marginLeft: "4px", fontSize: "12px", fontWeight: 500 }}>{window.innerWidth > 400 ? t("workspace_v2.add_selection_as_segment") : "复读" }</span>
                         </button>
                         <button
                             className="btn btn-ghost btn-sm"
@@ -1196,7 +1202,7 @@ export default function StudyWorkspace() {
                             disabled={selectionPopup.isTranslating}
                             style={{ padding: "8px 12px", borderRadius: "12px", color: "#fff", whiteSpace: "nowrap" }}
                         >
-                            🌍 <span style={{ marginLeft: "4px", fontSize: "12px" }}>{selectionPopup.isTranslating ? "..." : (window.innerWidth > 400 ? t("workspace_v2.translate_selection") : "翻译") }</span>
+                            <span style={{ color: "#81ecec" }}>🌍</span> <span style={{ marginLeft: "4px", fontSize: "12px", fontWeight: 500 }}>{selectionPopup.isTranslating ? "..." : (window.innerWidth > 400 ? t("workspace_v2.translate_selection") : "翻译") }</span>
                         </button>
                     </div>
 
