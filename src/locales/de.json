@@ -24,6 +24,7 @@
         "export": "Exportieren",
         "clear": "Leeren",
         "copy": "Kopieren",
+        "copy_success": "In die Zwischenablage kopiert",
         "appName": "Ting"
     },
     "library": {
@@ -259,8 +260,9 @@
         "model_inference": "Modell-Inferenz",
         "dictation_no_transcript": "(Keine Transkriptionsdaten)",
         "shadow_fail": "Segment konnte nicht gesetzt werden",
-        "translate_selection": "Übersetzen",
-        "translation_failed": "Übersetzung fehlgeschlagen, bitte Verbindung prüfen"
+        "translate_selection": "Auswahl übersetzen",
+        "translating": "Übersetzung...",
+        "translation_failed": "Übersetzung fehlgeschlagen, bitte überprüfen Sie Ihre Verbindung"
     },
     "auth": {
         "view_title": "Ting",

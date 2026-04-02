@@ -24,6 +24,7 @@
         "export": "匯出",
         "clear": "清除",
         "copy": "複製",
+        "copy_success": "已成功複製到剪切板",
         "appName": "聽多多"
     },
     "library": {
@@ -260,6 +261,7 @@
         "dictation_no_transcript": "(無字幕數據)",
         "shadow_fail": "設置跟讀片段失敗",
         "translate_selection": "翻譯所選",
+        "translating": "正在翻譯...",
         "translation_failed": "翻譯失敗，請檢查網路"
     },
     "auth": {

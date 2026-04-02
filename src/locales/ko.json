@@ -24,6 +24,7 @@
         "export": "내보내기",
         "clear": "초기화",
         "copy": "복사",
+        "copy_success": "클립보드에 복사되었습니다",
         "appName": "Ting"
     },
     "library": {
@@ -260,7 +261,8 @@
         "dictation_no_transcript": "(자막 데이터 없음)",
         "shadow_fail": "쉐도잉 세그먼트 설정 실패",
         "translate_selection": "번역",
-        "translation_failed": "번역 실패, 연결을 확인하세요"
+        "translating": "번역중...",
+        "translation_failed": "번역에 실패했습니다. 연결을 확인하세요"
     },
     "auth": {
         "view_title": "Ting",

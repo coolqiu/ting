@@ -24,6 +24,7 @@
         "export": "エクスポート",
         "clear": "クリア",
         "copy": "コピー",
+        "copy_success": "クリップボードにコピーされました",
         "appName": "Ting"
     },
     "library": {
@@ -260,6 +261,7 @@
         "dictation_no_transcript": "(字幕データなし)",
         "shadow_fail": "シャドーイングセグメントの設定に失敗しました",
         "translate_selection": "翻訳",
+        "translating": "翻訳中...",
         "translation_failed": "翻訳に失敗しました。接続を確認してください"
     },
     "auth": {

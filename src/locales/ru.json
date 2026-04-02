@@ -24,6 +24,7 @@
         "export": "Экспорт",
         "clear": "Очистить",
         "copy": "Копировать",
+        "copy_success": "Скопировано в буфер обмена",
         "appName": "Ting"
     },
     "library": {
@@ -259,8 +260,9 @@
         "model_inference": "Работа модели",
         "dictation_no_transcript": "(Нет данных транскрипции)",
         "shadow_fail": "Ошибка установки сегмента",
-        "translate_selection": "Перевести",
-        "translation_failed": "Ошибка перевода, проверьте подключение"
+        "translate_selection": "Перевести выделенное",
+        "translating": "Перевод...",
+        "translation_failed": "Ошибка перевода, проверьте соединение"
     },
     "auth": {
         "view_title": "Ting",

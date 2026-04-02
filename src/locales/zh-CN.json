@@ -23,6 +23,7 @@
         "delete": "删除",
         "export": "导出",
         "copy": "复制",
+        "copy_success": "已成功复制到剪贴板",
         "clear": "清除",
         "appName": "听多多"
     },
@@ -259,6 +260,7 @@
         "dictation_no_transcript": "(无字幕数据)",
         "shadow_fail": "设置跟读片段失败",
         "translate_selection": "翻译所选",
+        "translating": "正在翻译...",
         "translation_failed": "翻译失败，请检查网络"
     },
     "auth": {

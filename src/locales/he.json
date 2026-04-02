@@ -24,6 +24,7 @@
         "export": "ייצוא",
         "clear": "נקה",
         "copy": "העתק",
+        "copy_success": "הועתק ללוח",
         "appName": "Ting"
     },
     "library": {
@@ -259,7 +260,8 @@
         "model_inference": "עיבוד מודל",
         "dictation_no_transcript": "(אין נתוני תמלול)",
         "shadow_fail": "נכשל בהגדרת המקטע",
-        "translate_selection": "תרגם",
+        "translate_selection": "תרגם בחירה",
+        "translating": "מתרגם...",
         "translation_failed": "התרגום נכשל, אנא בדוק את החיבור שלך"
     },
     "auth": {

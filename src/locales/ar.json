@@ -24,6 +24,7 @@
         "export": "تصدير",
         "clear": "مسح",
         "copy": "نسخ",
+        "copy_success": "تم النسخ إلى الحافظة",
         "appName": "Ting"
     },
     "library": {
@@ -259,7 +260,8 @@
         "model_inference": "استدلال النموذج",
         "dictation_no_transcript": "(لا توجد بيانات نصية)",
         "shadow_fail": "فشل في تعيين القطاع",
-        "translate_selection": "ترجمة",
+        "translate_selection": "ترجمة المختارة",
+        "translating": "جاري الترجمة...",
         "translation_failed": "فشلت الترجمة، يرجى التحقق من اتصالك"
     },
     "auth": {

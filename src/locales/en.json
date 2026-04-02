@@ -23,6 +23,7 @@
         "delete": "Delete",
         "export": "Export",
         "copy": "Copy",
+        "copy_success": "Copied to clipboard",
         "clear": "Clear",
         "appName": "Ting"
     },
@@ -259,8 +260,9 @@
         "model_inference": "Model inference",
         "dictation_no_transcript": "(No transcript data)",
         "shadow_fail": "Failed to set shadowing segment",
-        "translate_selection": "Translate",
-        "translation_failed": "Translation failed, please check your connection"
+        "translate_selection": "Translate Selection",
+        "translating": "Translating...",
+        "translation_failed": "Translation failed, please check your network"
     },
     "auth": {
         "view_title": "Ting",

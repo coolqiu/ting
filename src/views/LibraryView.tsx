@@ -24,7 +24,7 @@ export function LibraryView() {
 
     useEffect(() => {
         fetchMaterials();
-        
+
         // Listen for internal file copy progress
         const unlisten = listen<number>("copy-progress", (event) => {
             setImportProgress(event.payload);
@@ -60,12 +60,12 @@ export function LibraryView() {
         try {
             setIsImporting(true);
             setImportProgress(0);
-            
+
             const finalPath = await resolveAndArchiveAudio(selectedPath, fileName);
             const info = await invoke<PlaybackInfo>("load_audio", { path: finalPath });
-            
+
             setIsImporting(false);
-            
+
             if (info?.file_path) {
                 const materialId: number = await invoke("add_or_update_material", {
                     title: info.file_name || fileName,
@@ -93,10 +93,10 @@ export function LibraryView() {
             const finalPath = await resolveAndArchiveAudio(mat.source_url, mat.title);
             await invoke<PlaybackInfo>("load_audio", { path: finalPath });
             await invoke("set_material_id", { id: mat.id });
-            
+
             // Set session flag for StudyWorkspace to show resume prompt
             sessionStorage.setItem('pending_resume_material', mat.id.toString());
-            
+
             navigate("/workspace");
         } catch (e) {
             error(t("library.loadFail", { error: String(e) }));
@@ -403,11 +403,11 @@ export function LibraryView() {
                         <p style={{ color: "var(--text-muted)", fontSize: "14px", marginBottom: "20px" }}>
                             {t("library.importDesc", "请耐心等待，正在存档文件...")}
                         </p>
-                        
+
                         <div className="progress-bar-container">
                             <div className="progress-bar-fill" style={{ width: `${importProgress}%` }}></div>
                         </div>
-                        
+
                         <div style={{ fontSize: "24px", fontWeight: "bold", color: "var(--accent-primary)" }}>
                             {importProgress}%
                         </div>

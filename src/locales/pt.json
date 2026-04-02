@@ -24,6 +24,7 @@
         "export": "Exportar",
         "clear": "Limpar",
         "copy": "Copiar",
+        "copy_success": "Copiado para a área de transferência",
         "appName": "Ting"
     },
     "library": {
@@ -259,8 +260,9 @@
         "model_inference": "Inferência de modelo",
         "dictation_no_transcript": "(Sem dados de transcrição)",
         "shadow_fail": "Falha ao definir segmento",
-        "translate_selection": "Traduzir",
-        "translation_failed": "Falha na tradução, verifique a conexão"
+        "translate_selection": "Traduzir seleção",
+        "translating": "Traduzindo...",
+        "translation_failed": "Tradução falhou, por favor verifique sua ligação"
     },
     "auth": {
         "view_title": "Ting",

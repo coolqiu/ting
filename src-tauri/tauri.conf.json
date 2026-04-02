@@ -3,6 +3,8 @@
   "version": "1.0.2",
   "identifier": "org.ting.app",
   "build": {
+    "beforeDevCommand": "npm run dev",
+    "devUrl": "http://localhost:1420",
     "beforeBuildCommand": "npm run build",
     "frontendDist": "../dist"
   },
@@ -39,7 +41,7 @@
       "frameworks": [
         "Accelerate"
       ],
-      "bundleVersion": "69",
+      "bundleVersion": "75",
       "infoPlist": "./Info.ios.plist"
     }
   }
