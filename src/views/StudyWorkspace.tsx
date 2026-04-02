@@ -1,97 +1,20 @@
-import { useState, useEffect, useRef, useCallback, Fragment, useMemo, memo } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { invoke } from "@tauri-apps/api/core";
-import { listen } from "@tauri-apps/api/event";
 import { open } from "@tauri-apps/plugin-dialog";
-import { useNavigate } from "react-router-dom";
+import { listen } from "@tauri-apps/api/event";
 import { useTranslation } from "react-i18next";
 import { useToast } from "../components/Toast";
 import { PlaybackMode, ABSegment, WordTimestamp, PlaybackInfo, LearningMaterial } from "../types";
 import levenshtein from "fast-levenshtein";
 import { resolveAndArchiveAudio } from "../utils/audioLoader";
 
-const TranscriptLine = memo(({
-    line,
-    isActive,
-    onWordClick,
-    startIndex, // Mastery Fix Added
-}: {
-    line: { text: string; start: number; end: number; words: WordTimestamp[] };
-    isActive: boolean;
-    onWordClick: (pos: number) => void;
-    startIndex: number; // Mastery Fix Added
-}) => {
-    return (
-        <p
-            id={isActive ? "active-transcript-line" : undefined}
-            className={`transcript-line no-native-callout ${isActive ? 'active-line' : ''}`}
-            style={{
-                fontWeight: isActive ? 700 : 400,
-                color: isActive ? 'var(--text-primary)' : 'var(--text-secondary)',
-                marginBottom: '16px',
-                lineHeight: '1.6',
-                transition: 'color 0.2s, font-weight 0.2s',
-            }}
-        >
-            <span
-                style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    padding: '2px 8px',
-                    marginRight: '8px',
-                    marginTop: '2px',
-                    borderRadius: '12px',
-                    fontSize: '12px',
-                    fontWeight: 600,
-                    background: isActive ? 'var(--accent-primary)' : 'var(--bg-tertiary)',
-                    color: isActive ? 'white' : 'var(--text-muted)',
-                    transition: 'all 0.2s',
-                    cursor: 'pointer',
-                    userSelect: 'none' /* Don't select the timestamp */
-                }}
-                onClick={() => onWordClick(line.start / 1000)}
-                title="Click to seek"
-            >
-                {formatTime(line.start / 1000)}
-            </span>
-            <span style={{ userSelect: 'text' }}>
-                {line.words.map((w, i) => {
-                    return (
-                        <Fragment key={i}>
-                            <span
-                                className="transcript-word"
-                                data-start={w.start_ms}
-                                data-end={w.end_ms}
-                                data-index={startIndex + i} // Mastery Physical Index
-                                onClick={() => {
-                                    // Make sure they aren't trying to select text while clicking
-                                    const sel = window.getSelection();
-                                    if (!sel || sel.isCollapsed) {
-                                        onWordClick(w.start_ms / 1000);
-                                    }
-                                }}
-                                style={{
-                                    display: "inline", /* Acts like text */
-                                    cursor: "pointer",
-                                    padding: "2px 0px",
-                                    borderRadius: "4px",
-                                    WebkitTouchCallout: "none", /* Supress native system menu */
-                                    userSelect: "text"
-                                }}
-                            >
-                                {w.word}
-                            </span>
-                            {" "}
-                        </Fragment>
-                    );
-                })}
-            </span>
-        </p>
-    );
-});
+/* Build 108.v1: Transcript components moved to categorized modules */
+import TranscriptView from "./StudyWorkspace/components/TranscriptView";
+import SelectionPopup from "./StudyWorkspace/components/SelectionPopup";
+import { useTranscriptSelection } from "./StudyWorkspace/hooks/useTranscriptSelection";
+import "./StudyWorkspace/StudyWorkspace.css";
 
 function formatTime(secs: number): string {
-
     const m = Math.floor(secs / 60);
     const s = Math.floor(secs % 60);
     return `${m}:${s.toString().padStart(2, "0")}`;
@@ -99,17 +22,6 @@ function formatTime(secs: number): string {
 
 function generateId(): string {
     return Math.random().toString(36).substring(2, 9);
-}
-
-interface SelectionPopup {
-    x: number;
-    y: number;
-    height?: number; // Captured for precise positioning below text
-    text: string;
-    start: number;
-    end: number;
-    translatedText?: string;
-    isTranslating?: boolean;
 }
 
 const SPEED_PRESETS = [0.5, 0.75, 1.0, 1.25, 1.5, 2.0];
@@ -135,11 +47,9 @@ function WaveformBars({ isPlaying }: { isPlaying: boolean }) {
 }
 
 export default function StudyWorkspace() {
-    const { t, i18n } = useTranslation();
+    const { t } = useTranslation();
     const { success: toastSuccess, error: toastError } = useToast();
-    const navigate = useNavigate();
     const [playback, setPlayback] = useState<PlaybackInfo | null>(null);
-    const [selectionPopup, setSelectionPopup] = useState<SelectionPopup | null>(null);
     const [isPlaying, setIsPlaying] = useState(false);
     const [position, setPosition] = useState(0);
     const [duration, setDuration] = useState(0);
@@ -147,7 +57,8 @@ export default function StudyWorkspace() {
     const [speed, setSpeed] = useState(1.0);
     const [currentMaterial, setCurrentMaterial] = useState<LearningMaterial | null>(null);
     const [tempA, setTempA] = useState<number | null>(null);
-    const [isSelecting, setIsSelecting] = useState(false);
+
+
 
     // Right sidebar tab state
     const [activeTab, setActiveTab] = useState<'segments' | 'transcript' | 'dictation'>(() => {
@@ -223,12 +134,12 @@ export default function StudyWorkspace() {
             if (state && state.file_path !== "") {
                 // Determine if we should accept this state's segments as canonical
                 const isInitializing = expectedSegmentCountRef.current === -1;
-                
-                // Build 85: Segment Anchor Logic. 
+
+                // Build 85: Segment Anchor Logic.
                 if (!isRestoringRef.current) {
                     setPlayback(prev => {
                         // Build 93.5: INSTANT WORKBENCH RENDER
-                        // If backend has a file (state.file_path is not empty), 
+                        // If backend has a file (state.file_path is not empty),
                         // we MUST initialize the workbench even if segments are 0.
                         // This prevents the "Welcome Screen" headphones icon from showing.
                         if (!prev) return state;
@@ -236,7 +147,7 @@ export default function StudyWorkspace() {
                         // Startup Guard: If we are still initializing and backend has 0 segments,
                         // do NOT overwrite existing UI segments with 0.
                         if (isInitializing && state.segments.length === 0) {
-                            return { ...state, segments: prev.segments }; 
+                            return { ...state, segments: prev.segments };
                         }
 
                         // If backend hasn't caught up to our segment additions yet, keep current UI segments
@@ -247,28 +158,48 @@ export default function StudyWorkspace() {
                         expectedSegmentCountRef.current = state.segments.length;
                         return state;
                     });
-                    
-                    // Always update auxiliary state if we HAVE a workbench loaded
-                    if (playbackRef.current) {
-                        // Build 93.8: Mark dirty if position has moved significantly (> 3s)
-                        if (Math.abs(state.position_secs - lastSavedRef.current.position) > 3) {
-                            isDirtyRef.current = true;
+                } else {
+                    // When restoring, keep our already restored position/volume/speed
+                    // Backend hasn't had time to update yet so it still gives old values (position 0)
+                    setPlayback(prev => {
+                        if (!prev) return state;
+
+                        // Keep existing position/volume/speed that we just restored from DB
+                        // Only update segments if backend has more
+                        if (state.segments.length < expectedSegmentCountRef.current) {
+                            return {
+                                ...state,
+                                position_secs: prev.position_secs,
+                                volume: prev.volume,
+                                speed: prev.speed,
+                                segments: prev.segments
+                            };
                         }
+                        expectedSegmentCountRef.current = state.segments.length;
+                        return {
+                            ...state,
+                            position_secs: prev.position_secs,
+                            volume: prev.volume,
+                            speed: prev.speed
+                        };
+                    });
+                }
 
+                // Always update auxiliary state if we HAVE a workbench loaded
+                if (playbackRef.current) {
+                    // Build 93.8: Mark dirty if position has moved significantly (> 3s)
+                    if (Math.abs(state.position_secs - lastSavedRef.current.position) > 3) {
+                        isDirtyRef.current = true;
+                    }
+
+                    // Don't overwrite position while restoring - we just set it correctly from DB
+                    if (!isRestoringRef.current) {
                         setPosition(state.position_secs);
-                        setDuration(state.duration_secs);
-                        setIsPlaying(state.is_playing);
-                        setSpeed(prev => prev !== state.speed ? state.speed : prev);
-                        setVolume(prev => prev !== state.volume ? state.volume : prev);
                     }
-
-                    // Build 97: Universal Identity/Progress Sync
-                    // If we have an active material but we haven't checked the DB for it 
-                    // during this component's life, DO IT NOW.
-                    if (state.material_id && !hasSyncProgressRef.current[state.material_id]) {
-                        hasSyncProgressRef.current[state.material_id] = true;
-                        checkAndLoadProgress(state.material_id, false);
-                    }
+                    setDuration(state.duration_secs);
+                    setIsPlaying(state.is_playing);
+                    setSpeed(prev => prev !== state.speed ? state.speed : prev);
+                    setVolume(prev => prev !== state.volume ? state.volume : prev);
                 }
                 setIsInitialCheck(false);
                 return state;
@@ -287,7 +218,7 @@ export default function StudyWorkspace() {
                             setPlayback({ ...info, material_id: latest.id });
                             setDuration(info.duration_secs);
                             setPosition(0);
-                            
+
                             hasSyncProgressRef.current[latest.id] = true;
                             await checkAndLoadProgress(latest.id, false);
                             return { ...info, material_id: latest.id };
@@ -327,7 +258,7 @@ export default function StudyWorkspace() {
 
         // Build 93.5: Immediate check (No 150ms delay) to prevent UI flicker
         checkAndLoadProgress(materialId, false, true); // forceShow=true
-        return () => {};
+        return () => { };
     }, []); // Run ONLY on mount
 
     // Restore transcript scroll position
@@ -356,16 +287,16 @@ export default function StudyWorkspace() {
 
     async function checkAndLoadProgress(material_id: number, autoResume: boolean = false, forceShow: boolean = false) {
         console.log(`[Progress] Checking progress for material: ${material_id}, autoResume=${autoResume}, forceShow=${forceShow}`);
-        
+
         try {
             const user = await invoke<any>("get_current_user");
             if (user) setDebugUserId(user.id);
-        } catch (e) {}
+        } catch (e) { }
 
         try {
             console.log("[Progress] COMMAND: Starting DB Retrieval for material:", material_id);
             const progress = await invoke<any>("get_material_progress", { materialId: material_id });
-            
+
             console.group("[Progress] DB Retrieval Audit");
             console.log("Material ID:", material_id);
             console.log("Returned Data:", progress);
@@ -384,7 +315,7 @@ export default function StudyWorkspace() {
                 } else {
                     const currentPos = playbackRef.current?.position_secs || 0;
                     const diff = Math.abs(currentPos - progress.position_secs);
-                    
+
                     if (diff < 10) {
                         console.log("[Progress] Near saved position, auto-applying DB segments.");
                         if (hasSegments) applyProgress(progress);
@@ -402,31 +333,35 @@ export default function StudyWorkspace() {
             console.error("[Progress] Fatal check error:", e);
         } finally {
             // Build 94.1: Extend boot lock to ensure React refs have synchronized
-            setTimeout(() => { isBootingRef.current = false; }, 1500); 
+            setTimeout(() => { isBootingRef.current = false; }, 1500);
         }
     }
 
     async function applyProgress(data: any) {
         if (!data) return;
         console.log("[Progress] Applying stored data:", data.position_secs, "segments:", data.segments?.length);
-        
+
         isRestoringRef.current = true;
         setResumeData(null);
-        
+
         try {
             // Build 93.8: Mark "Clean" after loading from DB
             isDirtyRef.current = false;
 
             if (data.position_secs > 0) {
                 setPosition(data.position_secs);
-                await invoke("seek", { position_secs: data.position_secs }).catch(e => console.warn("seek failed:", e));
+                setPlayback(prev => prev ? { ...prev, position_secs: data.position_secs } : prev);
+                // Bug fix: must use camelCase positionSecs to match Tauri command parameter
+                await invoke("seek", { positionSecs: data.position_secs }).catch(e => console.warn("seek failed:", e));
             }
             if (data.volume !== undefined) {
                 setVolume(data.volume);
+                setPlayback(prev => prev ? { ...prev, volume: data.volume } : prev);
                 await invoke("set_volume", { volume: data.volume }).catch(() => { });
             }
             if (data.speed !== undefined) {
                 setSpeed(data.speed);
+                setPlayback(prev => prev ? { ...prev, speed: data.speed } : prev);
                 await invoke("set_speed", { speed: data.speed }).catch(() => { });
             }
             if (data.mode) {
@@ -440,20 +375,29 @@ export default function StudyWorkspace() {
             // Update UI Instantly
             // Build 94.1: DO NOT set isDirtyRef to true here. 
             // Loading from DB means the UI is CLEAN (synced).
-            isDirtyRef.current = false; 
-            
+            isDirtyRef.current = false;
+
             setPlayback(prev => {
-                if (prev) return { ...prev, segments: segs, material_id: data.material_id };
+                if (prev) return {
+                    ...prev,
+                    segments: segs,
+                    material_id: data.material_id,
+                    ...(data.position_secs !== undefined && { position_secs: data.position_secs }),
+                    ...(data.volume !== undefined && { volume: data.volume }),
+                    ...(data.speed !== undefined && { speed: data.speed })
+                };
                 return {
-                    file_path: data.material_id?.toString() || "", 
+                    file_path: data.material_id?.toString() || "",
                     file_name: "",
                     material_id: data.material_id,
                     duration_secs: 0,
-                    position_secs: data.position_secs,
+                    position_secs: data.position_secs ?? 0,
                     is_playing: false,
-                    volume: 1.0,
-                    speed: 1.0,
+                    volume: data.volume ?? 1.0,
+                    speed: data.speed ?? 1.0,
                     mode: "Global" as any,
+                    active_segment_id: null,
+                    loop_remaining: null,
                     segments: segs,
                 };
             });
@@ -466,12 +410,29 @@ export default function StudyWorkspace() {
             if (data.active_segment_id) {
                 await invoke("set_active_segment", { id: data.active_segment_id }).catch(() => { });
             }
-            
-            // Critical: Allow pollState to take over
-            setTimeout(() => {
+
+            // Critical: Allow pollState to take over, but keep isRestoringRef = true
+            // until the backend has confirmed the seek position.
+            // Bug fix: previously isRestoringRef was released at the same instant pollState
+            // was called, leaving an open window for the 150ms polling interval to read
+            // position=0 from the backend and immediately overwrite our restored position.
+            // Now we await pollState() first, then release the lock after backend confirms seek.
+            const targetPosition = data.position_secs as number;
+            const releaseRestoringLock = async () => {
+                // Poll until backend position is within 2s of the target (seek has taken effect)
+                // or bail out after 2 seconds to avoid infinite lock
+                const deadline = Date.now() + 2000;
+                while (Date.now() < deadline) {
+                    const state = await pollState();
+                    if (state && Math.abs(state.position_secs - targetPosition) < 2) {
+                        break; // Backend has caught up
+                    }
+                    await new Promise(r => setTimeout(r, 150));
+                }
                 isRestoringRef.current = false;
-                pollState();
-            }, 300);
+                console.log("[Progress] Restoring lock released, position confirmed.");
+            };
+            releaseRestoringLock();
         } catch (e) {
             console.error("[Progress] Apply failed:", e);
             isRestoringRef.current = false;
@@ -488,7 +449,7 @@ export default function StudyWorkspace() {
 
     const saveProgress = useCallback(async (manualData?: PlaybackInfo, retryCount = 0) => {
         const pb = manualData || playbackRef.current;
-        if (!pb?.material_id) return; 
+        if (!pb?.material_id) return;
 
         // Build 93.8: Dirty Flag check (Only auto-save if dirty)
         if (!manualData && !isDirtyRef.current) {
@@ -501,10 +462,10 @@ export default function StudyWorkspace() {
             if (currentSegs === 0) {
                 console.log("[Progress] Save Blocked: Blocked auto-save of empty segments during boot.");
                 lastSavedRef.current.time = Date.now();
-                return; 
+                return;
             }
         }
-        
+
         // Build 86: High-water mark safety
         if (currentSegs === 0 && lastSessionSegmentsRef.current > 0 && !manualData) {
             console.warn("[Progress] BLOCKED save override: Frontend has 0 but Source had " + lastSessionSegmentsRef.current);
@@ -525,9 +486,9 @@ export default function StudyWorkspace() {
                     loop_count: s.loop_count
                 })),
                 active_segment_id: pb.active_segment_id,
-                updated_at: null 
+                updated_at: null
             };
-            
+
             console.log("[Progress] Saving to DB:", { id: pb.material_id, segments: currentSegs });
 
             if (currentSegs > 0) {
@@ -535,10 +496,10 @@ export default function StudyWorkspace() {
             }
 
             await invoke("save_material_progress", { progress: data });
-            
+
             // Build 93.8: Mark "Clean" after successful save
             isDirtyRef.current = false;
-            
+
             if (!manualData) {
                 lastSavedRef.current = { materialId: pb.material_id, position: pb.position_secs, time: Date.now() };
             }
@@ -565,7 +526,7 @@ export default function StudyWorkspace() {
             // Build 93.6/94.1: Only force save if we actually have data to save, 
             // and definitely NOT during the boot sequence or if the state is clean.
             if (!isBootingRef.current && isDirtyRef.current && (playback?.segments?.length || 0) > 0) {
-                saveProgress(true); 
+                saveProgress(undefined, 1);
             }
         };
     }, [saveProgress]);
@@ -575,7 +536,7 @@ export default function StudyWorkspace() {
         // We MUST start polling immediately even if playback is null, 
         // because pollState handles the auto-load logic for idle backends.
         pollRef.current = window.setInterval(pollState, 150);
-        
+
         return () => {
             if (pollRef.current) {
                 clearInterval(pollRef.current);
@@ -683,7 +644,7 @@ export default function StudyWorkspace() {
     // Unified Source of Truth: memoWords filters out hallucinations once for both UI and Selection
     const memoWords = useMemo(() => {
         if (!words || words.length === 0) return [];
-        
+
         let filteredWords: WordTimestamp[] = [];
         let duplicateCount = 0;
         for (let i = 0; i < words.length; i++) {
@@ -697,7 +658,7 @@ export default function StudyWorkspace() {
         }
 
         const cleanWords: WordTimestamp[] = [];
-        const maxSeqLen = 20; 
+        const maxSeqLen = 20;
         for (let i = 0; i < filteredWords.length; i++) {
             let isSeqDuplicate = false;
             for (let len = 4; len <= maxSeqLen; len++) {
@@ -869,7 +830,7 @@ export default function StudyWorkspace() {
             ],
         });
         if (selected) {
-            const selectedPath = typeof selected === 'string' ? selected : selected[0];
+            const selectedPath: string = typeof selected === 'string' ? selected : selected[0];
             const fileName = (selectedPath.split('/').pop() || selectedPath.split('\\').pop() || 'unknown.wav').split('?')[0];
 
             try {
@@ -877,19 +838,19 @@ export default function StudyWorkspace() {
                 const info = await invoke<PlaybackInfo>("load_audio", {
                     path: finalPath,
                 });
-                
+
                 // Build 90: Reverted to original sourceUrl logic as per user request.
                 // Keeping only the isBootingRef safety at the command gate level.
                 try {
                     const materialId: number = await invoke("add_or_update_material", {
                         title: fileName,
-                        sourceUrl: finalPath, 
+                        sourceUrl: finalPath,
                         durationMs: info.duration_secs * 1000
                     });
-                    
+
                     setPlayback({ ...info, material_id: materialId });
                     console.log("[Progress] Material registered with ID:", materialId, "for path:", finalPath);
-                    
+
                     await checkAndLoadProgress(materialId, true);
                 } catch (e) {
                     console.error("[Progress] Failed to register material:", e);
@@ -913,15 +874,20 @@ export default function StudyWorkspace() {
             if (isPlaying) {
                 await invoke("pause");
                 setIsPlaying(false);
+                setPlayback(prev => prev ? { ...prev, is_playing: false } : prev);
             } else {
                 // If we are at the end, start over
                 if (position >= duration - 0.2) {
                     await invoke("seek", { positionSecs: 0 });
+                    setPosition(0);
+                    setPlayback(prev => prev ? { ...prev, position_secs: 0, is_playing: true } : prev);
                     await invoke("play");
                 } else if (position === 0) {
                     await invoke("play");
+                    setPlayback(prev => prev ? { ...prev, is_playing: true } : prev);
                 } else {
                     await invoke("resume");
+                    setPlayback(prev => prev ? { ...prev, is_playing: true } : prev);
                 }
                 setIsPlaying(true);
             }
@@ -929,6 +895,7 @@ export default function StudyWorkspace() {
             try {
                 await invoke("play");
                 setIsPlaying(true);
+                setPlayback(prev => prev ? { ...prev, is_playing: true } : prev);
             } catch {
                 console.error("Playback error:", e);
             }
@@ -940,6 +907,8 @@ export default function StudyWorkspace() {
             await invoke("stop");
             setIsPlaying(false);
             setPosition(0);
+            // Sync to playback object for saving
+            setPlayback(prev => prev ? { ...prev, is_playing: false, position_secs: 0 } : prev);
         } catch (e) {
             console.error("Stop error:", e);
         }
@@ -952,6 +921,8 @@ export default function StudyWorkspace() {
         const ratio = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
         const newPos = ratio * duration;
         setPosition(newPos);
+        // Sync position to playback object for saving
+        setPlayback(prev => prev ? { ...prev, position_secs: newPos } : prev);
         invoke("seek", { positionSecs: newPos }).catch(console.error);
     };
 
@@ -959,12 +930,16 @@ export default function StudyWorkspace() {
     const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const vol = parseFloat(e.target.value);
         setVolume(vol);
+        // Sync volume to playback object for saving
+        setPlayback(prev => prev ? { ...prev, volume: vol } : prev);
         invoke("set_volume", { volume: vol }).catch(console.error);
     };
 
     // Speed change
     const handleSpeedChange = async (newSpeed: number) => {
         setSpeed(newSpeed);
+        // Sync speed to playback object for saving
+        setPlayback(prev => prev ? { ...prev, speed: newSpeed } : prev);
         try {
             await invoke("set_speed", { speed: newSpeed });
         } catch (e) {
@@ -976,6 +951,8 @@ export default function StudyWorkspace() {
     const handleSkip = async (deltaSecs: number) => {
         const newPos = Math.max(0, Math.min(duration, position + deltaSecs));
         setPosition(newPos);
+        // Sync position to playback object for saving
+        setPlayback(prev => prev ? { ...prev, position_secs: newPos } : prev);
         try {
             await invoke("seek", { positionSecs: newPos });
         } catch (e) {
@@ -998,7 +975,7 @@ export default function StudyWorkspace() {
 
         try {
             const seg = { id: generateId(), start_secs: a, end_secs: b, loop_count: 0 };
-            
+
             // Build 76: Correct Optimistic Pattern (Side effect AFTER state calc)
             isDirtyRef.current = true; // Build 93.8: Marked Dirty
             setPlayback(prev => {
@@ -1033,8 +1010,8 @@ export default function StudyWorkspace() {
             // Build 76: Correct Optimistic Pattern
             if (playback) {
                 isDirtyRef.current = true; // Build 93.8: Marked Dirty
-                const updated = { 
-                    ...playback, 
+                const updated = {
+                    ...playback,
                     segments: playback.segments.filter(s => s.id !== id),
                     active_segment_id: playback.active_segment_id === id ? null : playback.active_segment_id
                 };
@@ -1077,209 +1054,12 @@ export default function StudyWorkspace() {
         }
     };
 
-    const activeLineIdx = useMemo(() => {
-        return transcriptLines.findIndex(line => position >= line.start / 1000 && position <= (line.end / 1000) + 0.5);
-    }, [transcriptLines, position]);
-
     const handleSeekTo = useCallback((pos: number) => {
         setPosition(pos);
+        // Sync position to playback object for saving
+        setPlayback(prev => prev ? { ...prev, position_secs: pos } : prev);
         invoke("seek", { positionSecs: pos });
     }, []);
-
-    // Global selection listener for capturing native text selection (both desktop and mobile!)
-    useEffect(() => {
-        let timeout: any = null;
-        
-        const handleSelectionChange = () => {
-            if (timeout) clearTimeout(timeout);
-            
-            const sel = window.getSelection();
-            if (!sel || sel.isCollapsed || sel.rangeCount === 0) {
-                // If selection is cleared, immediately hide the popup
-                setSelectionPopup(null);
-                return;
-            }
-
-            // Mark as selecting to hide the popup while dragging
-            setIsSelecting(true);
-
-            // Debounce the popup display until they stop dragging handles
-            timeout = setTimeout(() => {
-                // Check if the selection was cleared since the timeout started
-                const currentSel = window.getSelection();
-                if (!currentSel || currentSel.isCollapsed || currentSel.rangeCount === 0) {
-                    setIsSelecting(false);
-                    return;
-                }
-
-                // If they are still touching/dragging, don't show yet (handled by lift listeners)
-                // However, for desktop mouse, we can show it after a small pause of no movement
-            }, 150);
-        };
-
-        const isiOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-
-        const handleLift = (e?: any) => {
-            setIsSelecting(false);
-
-            // Build 68 Fix: If the lift happens inside our popup, don't preventDefault
-            if (e?.target && (e.target as HTMLElement).closest('.selection-popup')) {
-                return;
-            }
-            
-            const sel = window.getSelection();
-            if (!sel || sel.isCollapsed || sel.rangeCount === 0) return;
-
-            const range = sel.getRangeAt(0);
-            const startNode = range.startContainer;
-            const startEl = startNode.nodeType === 3 ? startNode.parentElement : startNode as HTMLElement;
-            if (!startEl?.closest('.transcript-text') && !startEl?.closest('.transcript-word')) {
-                return;
-            }
-
-            // CRITICAL (Build 69): Only preventDefault for non-iOS devices.
-            // On iPhone, we want the native "Copy|Lookup" menu to coexist.
-            if (!isiOS && e && e.cancelable) {
-                e.preventDefault();
-                e.stopPropagation();
-            }
-
-            const rect = range.getBoundingClientRect();
-            if (rect.width === 0 || rect.height === 0) return;
-
-            const endNode = range.endContainer;
-            const endEl = endNode.nodeType === 3 ? endNode.parentElement : endNode as HTMLElement;
-
-            const closestStart = startEl?.closest('.transcript-word') as HTMLElement;
-            const closestEnd = endEl?.closest('.transcript-word') as HTMLElement;
-
-            if (closestStart && closestEnd) {
-                // Mastery Selection Engine (Build 72): Unified index slicing from memoWords
-                const sIdx = parseInt(closestStart.dataset.index || "0", 10);
-                const eIdx = parseInt(closestEnd.dataset.index || "0", 10);
-                const realStartIdx = Math.min(sIdx, eIdx);
-                const realEndIdx = Math.max(sIdx, eIdx);
-
-                const selectedWords = memoWords.slice(realStartIdx, realEndIdx + 1);
-                const text = selectedWords.map(w => w.word).join(" ");
-
-                if (text) {
-                    setSelectionPopup({
-                        x: rect.left + rect.width / 2,
-                        y: rect.top,
-                        height: rect.height,
-                        text: text,
-                        start: selectedWords[0].start_ms,
-                        end: selectedWords[selectedWords.length - 1].end_ms,
-                        isBelow: rect.top < 220 // Mastery: Smart Flip Threshold
-                    });
-                }
-            }
-        };
-
-        const preventDefault = (e: Event) => {
-            if (isiOS) return; // Build 69: Don't suppress contextmenu on iPhone
-            const target = e.target as HTMLElement;
-            if (target && target.closest('.no-native-callout')) {
-                e.preventDefault();
-                e.stopPropagation();
-            }
-        };
-
-        document.addEventListener('selectionchange', handleSelectionChange);
-        document.addEventListener('mouseup', handleLift);
-        document.addEventListener('touchend', handleLift, { passive: false });
-        document.addEventListener('contextmenu', preventDefault, { capture: true });
-
-        return () => {
-            document.removeEventListener('selectionchange', handleSelectionChange);
-            document.removeEventListener('mouseup', handleLift);
-            document.removeEventListener('touchend', handleLift);
-            document.removeEventListener('contextmenu', preventDefault, { capture: true });
-            if (timeout) clearTimeout(timeout);
-        };
-    }, [memoWords]);
-
-    const handleCopySelection = async (e: React.MouseEvent) => {
-        e.stopPropagation();
-        if (!selectionPopup || !selectionPopup.text) return;
-        try {
-            await navigator.clipboard.writeText(selectionPopup.text);
-            // Quick visual feedback
-            setSelectionPopup(null);
-        } catch (err) {
-            console.error("Failed to copy:", err);
-        }
-    };
-
-    const handleShadowSelection = async (e: React.MouseEvent) => {
-        e.stopPropagation();
-        if (!selectionPopup) return;
-        if (!playback?.file_path) return;
-
-        try {
-            const data = {
-                text: selectionPopup.text,
-                audioPath: playback.file_path,
-                startMs: selectionPopup.start,
-                endMs: selectionPopup.end
-            };
-            await invoke("set_shadowing_override", data);
-            setSelectionPopup(null);
-            navigate("/speaking");
-        } catch (err) {
-            console.error("[Shadowing] Failed:", err);
-        }
-    };
-
-    // Add the current transcript selection directly as an AB segment
-    const handleAddSelectionAsSegment = async (e: React.MouseEvent) => {
-        e.stopPropagation();
-        if (!selectionPopup) return;
-        const seg: ABSegment = {
-            id: generateId(),
-            start_secs: selectionPopup.start / 1000,
-            end_secs: selectionPopup.end / 1000,
-            loop_count: 3,
-        };
-        try {
-            // Build 76: Safe Optimistic Pattern
-            if (playback) {
-                const updated = { ...playback, segments: [...playback.segments, seg] };
-                setPlayback(updated);
-                saveProgress(updated);
-            }
-
-            await invoke("add_segment", { segment: seg });
-            setSelectionPopup(null);
-            setActiveTab('segments');
-            setTimeout(pollState, 100);
-        } catch (err) {
-            console.error("[Segment] Failed:", err);
-        }
-    };
-
-    const handleTranslateSelection = async (e: React.MouseEvent) => {
-        e.stopPropagation();
-        if (!selectionPopup || !selectionPopup.text) return;
-
-        setSelectionPopup({ ...selectionPopup, isTranslating: true, translatedText: undefined });
-
-        try {
-            const targetLang = i18n.language || "zh-CN";
-            const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=${targetLang}&dt=t&q=${encodeURIComponent(selectionPopup.text)}`;
-            const response = await fetch(url);
-            if (!response.ok) throw new Error("Translation failed");
-            const data = await response.json();
-            if (data && data[0]) {
-                const translated = data[0].map((item: any) => item[0]).join("");
-                setSelectionPopup(prev => prev ? { ...prev, translatedText: translated, isTranslating: false } : null);
-            }
-        } catch (err) {
-            console.error("[Translate] Failed:", err);
-            setSelectionPopup(prev => prev ? { ...prev, translatedText: "Error", isTranslating: false } : null);
-        }
-    };
 
     // Adjust a segment's start or end time by delta seconds
     const handleAdjustSegmentTime = async (seg: ABSegment, field: 'start' | 'end', delta: number, e: React.MouseEvent) => {
@@ -1303,19 +1083,26 @@ export default function StudyWorkspace() {
         }
     };
 
-    const handleTranscriptScroll = () => {
-        // Build 67: Hide selection popup immediately on scroll to prevent "floating"
-        if (selectionPopup) setSelectionPopup(null);
-        
-        if (transcriptContainerRef.current && playbackRef.current?.material_id) {
-            sessionStorage.setItem(
-                `transcript_scroll_${playbackRef.current.material_id}`,
-                transcriptContainerRef.current.scrollTop.toString()
-            );
-        }
-    };
+    // Build 108.v1: Transcript Selection System Hook
+    const {
+        selectionPopup,
+        isSelecting,
+        handleCopySelection,
+        handleShadowSelection,
+        handleAddSelectionAsSegment,
+        handleTranslateSelection,
+        handleBlankClick
+    } = useTranscriptSelection({
+        playback,
+        setPlayback,
+        memoWords,
+        saveProgress,
+        setActiveTab,
+        pollState,
+        generateId
+    });
 
-const progressPercent = duration > 0 ? (position / duration) * 100 : 0;
+    const progressPercent = duration > 0 ? (position / duration) * 100 : 0;
     const tempAPercent = duration > 0 && tempA !== null ? (tempA / duration) * 100 : 0;
     const volumeIcon = volume === 0 ? "🔇" : volume < 0.5 ? "🔉" : "🔊";
     const adjBtnStyle: React.CSSProperties = {
@@ -1324,15 +1111,8 @@ const progressPercent = duration > 0 ? (position / duration) * 100 : 0;
     };
 
     return (
-        <div 
-            onClick={() => {
-                // If dragging or selecting text, don't clear the popup yet
-                const sel = window.getSelection();
-                if (sel && !sel.isCollapsed) return;
-                
-                // Clear selection popup when clicking on empty background
-                setSelectionPopup(null);
-            }}
+        <div
+            onClick={handleBlankClick}
             onContextMenu={(e) => {
                 // iPhone Strategy (Build 69): Leave native menu alone.
                 const isiOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
@@ -1345,61 +1125,15 @@ const progressPercent = duration > 0 ? (position / duration) * 100 : 0;
             }}
             style={{ display: "flex", flexDirection: "column", height: "100%", overflow: "hidden", position: "relative" }}
         >
-            {/* Flagship Selection Popup - Vertical Smart Flip Edition */}
-            {(selectionPopup && !isSelecting) && (
-                <div
-                    className="selection-popup premium-glass fade-in"
-                    onMouseDown={(e) => e.stopPropagation()}
-                    style={{
-                        position: "fixed",
-                        left: selectionPopup.x,
-                        top: selectionPopup.isBelow ? (selectionPopup.y + (selectionPopup.height || 24) + 12) : (selectionPopup.y - 12),
-                        transform: selectionPopup.isBelow ? "translateX(-50%) translateY(0)" : "translateX(-50%) translateY(-100%)", 
-                        zIndex: 10000,
-                        display: "flex",
-                        flexDirection: "column",
-                        gap: "4px",
-                        padding: "6px",
-                        borderRadius: "16px",
-                        background: "rgba(25, 25, 35, 0.98)",
-                        border: "1px solid rgba(255, 255, 255, 0.15)",
-                        boxShadow: "0 12px 48px rgba(0,0,0,0.6)",
-                        animation: "popup-spring 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275)"
-                    }}
-                >
-                    {!selectionPopup.translatedText ? (
-                        <div style={{ display: "flex", flexDirection: "column", gap: "2px", minWidth: "160px" }}>
-                            {!/iPad|iPhone|iPod/.test(navigator.userAgent) && (
-                                <button className="btn btn-ghost btn-sm" onClick={handleCopySelection} style={{ color: "#fff", justifyContent: "flex-start", padding: "10px 16px", gap: "12px", borderRadius: "10px" }}>
-                                    <span style={{ fontSize: "16px" }}>📋</span> <span>{t("common.copy")}</span>
-                                </button>
-                            )}
-                            <button className="btn btn-ghost btn-sm" onClick={handleShadowSelection} style={{ color: "#fff", justifyContent: "flex-start", padding: "10px 16px", gap: "12px", borderRadius: "10px" }}>
-                                <span style={{ fontSize: "16px", color: "#a29bfe" }}>🎧</span> <span>{t("workspace_v2.shadow_selection")}</span>
-                            </button>
-                            <button className="btn btn-ghost btn-sm" onClick={handleAddSelectionAsSegment} style={{ color: "#fff", justifyContent: "flex-start", padding: "10px 16px", gap: "12px", borderRadius: "10px" }}>
-                                <span style={{ fontSize: "16px", color: "#fab1a0" }}>📌</span> <span>{t("workspace_v2.add_selection_as_segment")}</span>
-                            </button>
-                            {!/iPad|iPhone|iPod/.test(navigator.userAgent) && (
-                                <button className="btn btn-ghost btn-sm" onClick={handleTranslateSelection} style={{ color: "#fff", justifyContent: "flex-start", padding: "10px 16px", gap: "12px", borderRadius: "10px" }}>
-                                    <span style={{ fontSize: "16px", color: "#81ecec" }}>🌍</span> <span>{t("workspace_v2.translate_selection")}</span>
-                                </button>
-                            )}
-                        </div>
-                    ) : (
-                        <div style={{ 
-                            width: "360px", 
-                            color: "#ffeaa7", 
-                            padding: "24px", 
-                            fontSize: "16px", 
-                            fontWeight: 500, 
-                            lineHeight: "1.6",
-                            animation: "slideInVertical 0.3s ease-out" 
-                        }}>
-                            {selectionPopup.translatedText}
-                        </div>
-                    )}
-                </div>
+            {selectionPopup && (
+                <SelectionPopup
+                    selectionPopup={selectionPopup as any}
+                    isSelecting={isSelecting}
+                    handleCopySelection={handleCopySelection}
+                    handleShadowSelection={handleShadowSelection}
+                    handleAddSelectionAsSegment={handleAddSelectionAsSegment}
+                    handleTranslateSelection={handleTranslateSelection}
+                />
             )}
             {/* Main content */}
             <div className="app-content" style={{ marginTop: "4px", flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
@@ -1842,7 +1576,6 @@ const progressPercent = duration > 0 ? (position / duration) * 100 : 0;
                                 <div
                                     className="ab-sidebar-content no-native-callout"
                                     ref={transcriptContainerRef}
-                                    onScroll={handleTranscriptScroll}
                                     style={{
                                         padding: "16px",
                                         display: "flex",
@@ -1901,40 +1634,14 @@ const progressPercent = duration > 0 ? (position / duration) * 100 : 0;
                                                     </div>
                                                 </div>
                                             ) : words.length > 0 ? (
-                                                <div className="transcript-container">
-                                                    <div style={{ padding: "0 0 16px 0", display: "flex", justifyContent: "flex-end", borderBottom: "1px solid var(--border-subtle)", marginBottom: "16px" }}>
-                                                        <button
-                                                            className="btn btn-ghost btn-sm"
-                                                            onClick={() => startTranscription(true)}
-                                                            style={{
-                                                                fontSize: "11px",
-                                                                padding: "4px 12px",
-                                                                opacity: 0.8
-                                                            }}
-                                                        >
-                                                            🔄 {t("workspace_v2.generate_transcript")}
-                                                        </button>
-                                                    </div>
-                                                    <div className="transcript-text" style={{ padding: "0" }}>
-                                                        {(() => {
-                                                            let offset = 0;
-                                                            return transcriptLines.map((line, idx) => {
-                                                                const curOffset = offset;
-                                                                offset += (line.words?.length || 0);
-                                                                return (
-                                                                    <TranscriptLine
-                                                                        key={idx}
-                                                                        line={line}
-                                                                        isActive={activeLineIdx === idx}
-                                                                        onWordClick={handleSeekTo}
-                                                                        startIndex={curOffset}
-                                                                    />
-                                                                );
-                                                            });
-                                                        })()}
-                                                    </div>
-                                                </div>
-
+                                                <TranscriptView
+                                                    lines={transcriptLines}
+                                                    position={position}
+                                                    isPlaying={isPlaying}
+                                                    activeTab={activeTab}
+                                                    onWordClick={handleSeekTo}
+                                                    materialId={playback.material_id}
+                                                />
                                             ) : (
                                                 <div style={{ margin: "auto", textAlign: "center", color: "var(--text-muted)", fontSize: "14px" }}>
                                                     <div style={{ fontSize: "28px", opacity: 0.5, marginBottom: "12px" }}>🤖</div>
