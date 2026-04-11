@@ -33,8 +33,29 @@ export async function resolveAndArchiveAudio(rawPath: string, originalName: stri
         await invoke("copy_file_with_progress", { sourcePath: rawPath, destPath });
 
         return destPath;
-    } catch (err) {
-        console.error("[AudioLoader] Archive failed:", err);
-        throw new Error(`Failed to archive audio file: ${err}`);
+    } catch (e) {
+        console.error('Archive error:', e);
+        return rawPath;
     }
+}
+
+/**
+ * [Build 67] Robustly decodes strings that might be URL encoded.
+ * Handles potential double or triple encoding common on some Android/iOS file pickers.
+ */
+export function decodeSafe(s: string): string {
+    if (!s) return "";
+    let decoded = s;
+    try {
+        // Try decoding up to 3 times to handle multi-layer encoding (e.g. %25E4...)
+        for (let i = 0; i < 3; i++) {
+            const prev = decoded;
+            decoded = decodeURIComponent(decoded);
+            if (decoded === prev) break;
+        }
+    } catch (e) {
+        // If it throws, it's either not encoded or contains bad '%' sequences.
+        // Return original if first attempt fails, or the last successful deck.
+    }
+    return decoded;
 }

@@ -46,7 +46,14 @@ pub async fn transcribe_audio(
         path.clone()
     };
 
-    let cache_key = format!("{}_v8", DEFAULT_MODEL_NAME);
+    // Use model file size as cache key version: cache only invalidates when the model
+    // binary actually changes (e.g. user downloads a different model), NOT on every
+    // App update where the hardcoded "_v8" suffix used to be bumped manually.
+    let model_path_for_key = model_manager.get_model_path(DEFAULT_MODEL_NAME);
+    let model_size = std::fs::metadata(&model_path_for_key)
+        .map(|m| m.len())
+        .unwrap_or(0);
+    let cache_key = format!("{}_sz{}", DEFAULT_MODEL_NAME, model_size);
     let model_used = DEFAULT_MODEL_NAME;
 
     // 1. Check Store (if not forcing)

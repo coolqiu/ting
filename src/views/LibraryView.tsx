@@ -7,9 +7,10 @@ import { useTranslation } from "react-i18next";
 import { useToast } from "../components/Toast";
 import { LearningMaterial, PlaybackInfo } from "../types";
 import { Search, MoreVertical, Trash2, Edit2, Play, Filter, BookOpen, Link, FileAudio, Loader2 } from "lucide-react";
-import { resolveAndArchiveAudio } from "../utils/audioLoader";
+import { resolveAndArchiveAudio, decodeSafe } from "../utils/audioLoader";
 
 export function LibraryView() {
+    const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
     const { t } = useTranslation();
     const { error, success } = useToast();
     const [materials, setMaterials] = useState<LearningMaterial[]>([]);
@@ -55,7 +56,7 @@ export function LibraryView() {
         if (!selected) return;
 
         const selectedPath = typeof selected === 'string' ? selected : selected[0];
-        const fileName = decodeURIComponent((selectedPath.split('/').pop() || selectedPath.split('\\').pop() || 'unknown.wav').split('?')[0]);
+        const fileName = decodeSafe((selectedPath.split('/').pop() || selectedPath.split('\\').pop() || 'unknown.wav').split('?')[0]);
 
         try {
             setIsImporting(true);
@@ -68,7 +69,7 @@ export function LibraryView() {
 
             if (info?.file_path) {
                 const materialId: number = await invoke("add_or_update_material", {
-                    title: info.file_name || fileName,
+                    title: info.file_name ? decodeSafe(info.file_name) : fileName,
                     sourceUrl: info.file_path,
                     durationMs: Math.round((info.duration_secs || 0) * 1000),
                 });
@@ -136,7 +137,10 @@ export function LibraryView() {
                         <p style={{ margin: 0, color: "var(--text-muted)" }}>{t("library.subtitle")}</p>
                     </div>
                     <div style={{ display: "flex", gap: "10px" }}>
-                        <button className="btn btn-ghost" onClick={() => setShowUrlModal(true)}>{t("library.importUrl")}</button>
+                        {/* URL import only available on desktop (requires yt-dlp + ffmpeg sidecar) */}
+                        {!isMobile && (
+                            <button className="btn btn-ghost" onClick={() => setShowUrlModal(true)}>{t("library.importUrl")}</button>
+                        )}
                         <button className="btn btn-primary" onClick={handleAddMaterial}>{t("library.addLocal")}</button>
                     </div>
                 </div>
@@ -204,9 +208,11 @@ export function LibraryView() {
                                 {t("library.emptyDesc")}
                             </p>
                             <div style={{ display: "flex", gap: "12px", justifyContent: "center" }}>
-                                <button className="btn btn-ghost" onClick={() => setShowUrlModal(true)} style={{ gap: "8px" }}>
-                                    <Link size={16} /> {t("library.importUrl")}
-                                </button>
+                                {!isMobile && (
+                                    <button className="btn btn-ghost" onClick={() => setShowUrlModal(true)} style={{ gap: "8px" }}>
+                                        <Link size={16} /> {t("library.importUrl")}
+                                    </button>
+                                )}
                                 <button className="btn btn-primary" onClick={handleAddMaterial} style={{ gap: "8px" }}>
                                     <FileAudio size={16} /> {t("library.addLocal")}
                                 </button>
@@ -222,7 +228,7 @@ export function LibraryView() {
                             }}>
                                 <div style={{ flex: 1, minWidth: 0, marginBottom: "8px" }}>
                                     <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "4px" }}>
-                                        <h3 style={{ margin: 0, fontSize: "16px", fontWeight: 600 }}>{decodeURIComponent(mat.title)}</h3>
+                                        <h3 style={{ margin: 0, fontSize: "16px", fontWeight: 600 }}>{decodeSafe(mat.title)}</h3>
                                         {mat.progress_secs !== null && mat.progress_secs > 0 && (
                                             <span style={{
                                                 background: "rgba(var(--accent-primary-rgb), 0.1)",
@@ -307,8 +313,8 @@ export function LibraryView() {
                 </div>
             </div>
 
-            {/* URL Import Modal */}
-            {showUrlModal && (
+            {/* URL Import Modal — desktop only */}
+            {!isMobile && showUrlModal && (
                 <UrlImportModal
                     onClose={() => setShowUrlModal(false)}
                     onSuccess={async (path) => {

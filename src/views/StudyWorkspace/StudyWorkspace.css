@@ -1,0 +1,197 @@
+/* StudyWorkspace CSS Variable System */
+:root {
+  --workspace-bg: var(--bg-primary);
+  --player-panel-bg: rgba(255, 255, 255, 0.05);
+  --accent-primary: #8a70ff;
+  --accent-secondary: #ff708a;
+}
+
+.study-workspace-desktop {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+.workspace-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 24px;
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-medium);
+}
+
+.workspace-content {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+.player-panel {
+  flex: 1;
+  padding: 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  background: var(--player-panel-bg);
+}
+
+.sidebar-tabs {
+  width: 400px;
+  border-left: 1px solid var(--border-medium);
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-secondary);
+}
+
+.tab-viewport {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.transcript-container {
+  height: 100%;
+  padding: 24px;
+}
+
+/* Mobile Specifics */
+.study-workspace-android {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background: var(--bg-primary);
+}
+
+.mobile-header {
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-medium);
+}
+
+.mobile-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.content-scrollable {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.mobile-controls-dock {
+  height: 120px;
+  background: var(--bg-secondary);
+  border-top: 1px solid var(--border-medium);
+  padding: 8px 16px;
+  display: flex;
+  flex-direction: column;
+}
+
+.controls-main {
+  display: flex;
+  justify-content: space-evenly;
+  align-items: center;
+  flex: 1;
+}
+
+.play-btn-large {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: var(--accent-primary);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(138, 112, 255, 0.4);
+}
+
+/* Custom Utilities */
+.dimmed { opacity: 0.6; font-size: 0.9em; }
+.btn-primary { background: var(--accent-primary); color: white; padding: 10px 20px; border-radius: 8px; font-weight: 600; }
+.btn-secondary { background: var(--button-bg-secondary); padding: 10px 20px; border-radius: 8px; }
+
+/* MODALS */
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.resume-modal {
+    background: var(--bg-secondary);
+    padding: 32px;
+    border-radius: 16px;
+    width: 90%;
+    max-width: 400px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+}
+
+/* --- Selection Popup & Global Theme Unification --- */
+.selection-popup {
+    position: fixed;
+    z-index: 10000;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 6px;
+    border-radius: var(--radius-lg);
+    background: var(--bg-secondary);
+    backdrop-filter: blur(16px);
+    border: 1px solid var(--border-medium);
+    box-shadow: var(--shadow-lg);
+    animation: popup-spring 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes popup-spring {
+    0% { transform: translateX(-50%) scale(0.8) translateY(10px); opacity: 0; }
+    100% { transform: translateX(-50%) scale(1) translateY(0); opacity: 1; }
+}
+
+.popup-menu-btn {
+    border: none;
+    background: transparent;
+    color: var(--text-primary) !important;
+    justify-content: flex-start !important;
+    padding: 10px 16px !important;
+    gap: 12px !important;
+    border-radius: var(--radius-md) !important;
+    font-weight: 500 !important;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    display: flex;
+    align-items: center;
+    width: 100%;
+}
+
+.popup-menu-btn:hover {
+    background: var(--bg-hover) !important;
+    transform: translateX(4px);
+}
+
+.translation-box {
+    width: 360px;
+    color: var(--accent-primary);
+    padding: 24px;
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 1.6;
+    animation: slideInVertical 0.3s ease-out;
+}
+
+@keyframes slideInVertical {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}

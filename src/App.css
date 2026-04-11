@@ -1328,12 +1328,21 @@ input:focus {
 /* Mobile Responsive Design (<= 768px)          */
 /* ============================================ */
 @media (max-width: 768px) {
+  /* Fix: push the ENTIRE app below the system status bar.
+     env(safe-area-inset-top) = 0 on devices with no notch, so this is
+     safe for all devices. Without this the mobile-header (and the sidebar
+     drawer header) overlap the status bar. */
+  .app-container.is-mobile {
+    padding-top: env(safe-area-inset-top);
+  }
+
   /* Sidebar Drawer */
   .app-sidebar {
     position: fixed;
-    top: 0;
+    /* Start BELOW the status bar so the sidebar header is not hidden */
+    top: env(safe-area-inset-top);
     left: 0;
-    height: 100vh;
+    height: calc(100vh - env(safe-area-inset-top));
     width: 280px !important; /* Force width for drawer */
     box-shadow: var(--shadow-xl);
     transform: translateX(0);
@@ -1367,12 +1376,13 @@ input:focus {
     z-index: 100 !important;
   }
 
-  /* Mobile Header */
+  /* Mobile Header — now uses simple padding since app-container already
+     accounts for safe-area-inset-top via padding-top */
   .mobile-header {
     display: flex;
     align-items: center;
     gap: 16px;
-    padding: calc(12px + env(safe-area-inset-top)) 16px 12px;
+    padding: 12px 16px;
     background-color: var(--bg-primary);
     border-bottom: 1px solid var(--border-subtle);
     z-index: 80;

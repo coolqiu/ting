@@ -27,14 +27,30 @@ impl TranscriptStore {
     pub fn new(db_path: PathBuf) -> Result<Self> {
         let conn = Connection::open(db_path)?;
 
-        // Initialize tables
+        // Migration: detect old schema that had UNIQUE(file_hash, model_used).
+        // The new schema uses UNIQUE(file_hash) only, so each audio file always has
+        // exactly one transcript record — new transcriptions simply overwrite the old one.
+        let old_schema: Option<String> = conn.query_row(
+            "SELECT sql FROM sqlite_master WHERE type='table' AND name='transcripts'",
+            [],
+            |row| row.get(0),
+        ).ok();
+
+        if old_schema.as_deref().map(|s| s.contains("file_hash, model_used")).unwrap_or(false) {
+            // Old schema detected — drop and recreate (cached transcripts are regeneratable)
+            conn.execute_batch(
+                "DROP TABLE IF EXISTS transcript_words;
+                 DROP TABLE IF EXISTS transcripts;"
+            )?;
+        }
+
+        // New schema: one transcript per file (UNIQUE on file_hash only)
         conn.execute(
             "CREATE TABLE IF NOT EXISTS transcripts (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
-                file_hash TEXT NOT NULL,
+                file_hash TEXT NOT NULL UNIQUE,
                 model_used TEXT NOT NULL,
-                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-                UNIQUE(file_hash, model_used)
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP
             )",
             [],
         )?;
