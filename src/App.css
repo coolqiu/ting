@@ -1,6 +1,18 @@
 /* FIX (V41) Mobile Layout & Sidebar Lifting */
-body, .app-container { overflow-x: hidden !important; }
-@media (max-width: 768px) { .sidebar-footer { padding-bottom: calc(50px + env(safe-area-inset-bottom)) !important; } .view-container { padding: 16px !important; } }
+body,
+.app-container {
+  overflow-x: hidden !important;
+}
+
+@media (max-width: 768px) {
+  .sidebar-footer {
+    padding-bottom: calc(50px + env(safe-area-inset-bottom)) !important;
+  }
+
+  .view-container {
+    padding: 16px !important;
+  }
+}
 
 :root {
   /* Color palette - light theme (default) */
@@ -131,10 +143,10 @@ body {
 }
 
 .sidebar-header {
-  height: calc(64px + env(safe-area-inset-top));
+  height: calc(64px + env(safe-area-inset-top, 24px));
   display: flex;
   align-items: center;
-  padding: env(safe-area-inset-top) 16px 0;
+  padding: env(safe-area-inset-top, 24px) 16px 0;
   border-bottom: 1px solid var(--border-subtle);
 }
 
@@ -1324,26 +1336,20 @@ input:focus {
   opacity: 0.7;
   cursor: not-allowed;
 }
+
 /* ============================================ */
 /* Mobile Responsive Design (<= 768px)          */
 /* ============================================ */
 @media (max-width: 768px) {
-  /* Fix: push the ENTIRE app below the system status bar.
-     env(safe-area-inset-top) = 0 on devices with no notch, so this is
-     safe for all devices. Without this the mobile-header (and the sidebar
-     drawer header) overlap the status bar. */
-  .app-container.is-mobile {
-    padding-top: env(safe-area-inset-top);
-  }
 
   /* Sidebar Drawer */
   .app-sidebar {
     position: fixed;
-    /* Start BELOW the status bar so the sidebar header is not hidden */
-    top: env(safe-area-inset-top);
+    top: 0;
     left: 0;
-    height: calc(100vh - env(safe-area-inset-top));
-    width: 280px !important; /* Force width for drawer */
+    height: 100vh;
+    width: 280px !important;
+    /* Force width for drawer */
     box-shadow: var(--shadow-xl);
     transform: translateX(0);
   }
@@ -1376,13 +1382,16 @@ input:focus {
     z-index: 100 !important;
   }
 
-  /* Mobile Header — now uses simple padding since app-container already
-     accounts for safe-area-inset-top via padding-top */
+  /* Mobile Header */
   .mobile-header {
     display: flex;
-    align-items: center;
+    align-items: flex-end; /* Build 110: Shift content down below status bar */
     gap: 16px;
-    padding: 12px 16px;
+    padding-top: env(safe-area-inset-top, 32px);
+    padding-left: 16px;
+    padding-right: 16px;
+    padding-bottom: 14px;
+    min-height: calc(72px + env(safe-area-inset-top, 0px));
     background-color: var(--bg-primary);
     border-bottom: 1px solid var(--border-subtle);
     z-index: 80;
@@ -1402,7 +1411,8 @@ input:focus {
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    padding: 4px; border-radius: 4px;
+    padding: 4px;
+    border-radius: 4px;
   }
 
   .mobile-menu-btn:active {
@@ -1439,7 +1449,8 @@ input:focus {
 
   /* Audio Player reflows if they exist */
   .player-info {
-    flex-direction: row; /* Keep it row-based even on mobile if it fits better now */
+    flex-direction: row;
+    /* Keep it row-based even on mobile if it fits better now */
     align-items: center !important;
     padding: 8px !important;
   }
@@ -1449,45 +1460,19 @@ input:focus {
   }
 }
 
-/* Global: Disable system selection menu callout on mobile to use our custom menu exclusively. 
-   Also prevent accidental full-screen selection by disabling selection on non-content areas. */
+/* Global: Disable system selection menu callout on mobile except for specifically enabled text areas */
 *:not(input):not(textarea) {
   -webkit-touch-callout: none;
   -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
   user-select: none;
-}
-
-/* Explicitly enable text selection for transcript but SUPPRESS native callout menu */
-.transcript-word, .transcript-container, .no-native-callout {
-  -webkit-touch-callout: none !important;
-  -webkit-user-select: text !important;
-  -webkit-user-modify: read-only !important; /* Build 68: Extra signal for iOS to skip edit menu */
-  user-select: text !important;
-}
-
-
-/* Premium Selection Popup Overlay (Build 63) */
-.selection-popup {
-  pointer-events: auto;
-  user-select: none;
-  filter: drop-shadow(0 12px 48px rgba(0,0,0,0.7));
-  transition: opacity var(--transition-fast) ease-out, transform var(--transition-bounce) ease-out;
-  background: rgba(28, 28, 40, 0.94); /* Darker and more premium */
-  -webkit-backdrop-filter: blur(25px);
-  backdrop-filter: blur(25px);
-  border: 1px solid rgba(255, 255, 255, 0.28);
-  border-radius: 20px;
-  padding: 8px 12px;
-  display: flex !important;
-  flex-direction: row !important;
-  align-items: center;
-  gap: 8px;
-  z-index: 10000; /* Extremely high to ensure visibility */
 }
 
 /* Style for our custom word selection */
 .transcript-word {
   margin-right: 4px;
+  /* replaces the literal space in JSX */
 }
 
 .transcript-word.word-selected {
@@ -1509,81 +1494,39 @@ input:focus {
 }
 
 /* Import Progress Overlay (V43) */
-.import-progress-overlay { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.75); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; z-index: 9999; }
-.progress-card { background: var(--bg-secondary); border: 1px solid var(--border-medium); border-radius: 20px; padding: 32px; width: 90%; max-width: 360px; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.4); }
-.progress-bar-container { width: 100%; height: 10px; background: var(--bg-tertiary); border-radius: 5px; margin: 20px 0; overflow: hidden; }
-.progress-bar-fill { height: 100%; background: var(--accent-primary); transition: width 0.3s ease; }
-
-/* Premium Selection Color (Royal Blue - Mastery Build) */
-::selection {
-  background-color: #2b64d2 !important;
-  color: #ffffff !important;
-}
-::-moz-selection {
-  background-color: #2b64d2 !important;
-  color: #ffffff !important;
+.import-progress-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
 }
 
-/* ============================================ */
-/* Selection Popup (Build 67 Premium)           */
-/* ============================================ */
-.selection-popup.premium-glass {
-  background: rgba(26, 29, 39, 0.9) !important;
-  backdrop-filter: blur(25px) saturate(200%) !important;
-  -webkit-backdrop-filter: blur(25px) saturate(200%) !important;
-  border: 1px solid rgba(255, 255, 255, 0.15) !important;
-  box-shadow: 0 16px 56px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.08) !important;
-  border-radius: 18px !important;
-  padding: 4px !important;
-  /* Use a generic scale-in animation since transform is handled inline */
-  animation: popup-spring-scale 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+.progress-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-medium);
+  border-radius: 20px;
+  padding: 32px;
+  width: 90%;
+  max-width: 360px;
+  text-align: center;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
 }
 
-/* Caret (Triangle) - ABOVE Text */
-.selection-popup.premium-glass::after {
-  content: "";
-  position: absolute;
-  bottom: -6px;
-  left: 50%;
-  transform: translateX(-50%);
-  border-left: 6px solid transparent;
-  border-right: 6px solid transparent;
-  border-top: 6px solid rgba(26, 29, 39, 0.9);
-  transition: all 0.2s;
+.progress-bar-container {
+  width: 100%;
+  height: 10px;
+  background: var(--bg-tertiary);
+  border-radius: 5px;
+  margin: 20px 0;
+  overflow: hidden;
 }
 
-/* Caret (Triangle) - BELOW Text (Mastery Flipping) */
-.selection-popup.menu-below::after {
-  bottom: auto !important;
-  top: -6px !important;
-  border-top: none !important;
-  border-bottom: 6px solid rgba(26, 29, 39, 0.9) !important;
+.progress-bar-fill {
+  height: 100%;
+  background: var(--accent-primary);
+  transition: width 0.3s ease;
 }
-
-@keyframes popup-spring-scale {
-  0% { transform: translate(-50%, -100%) scale(0.6); opacity: 0; } /* Fallback for above */
-  100% { transform: translate(-50%, -100%) scale(1); opacity: 1; }
-}
-
-.selection-popup .btn-ghost:hover {
-  background: rgba(255, 255, 255, 0.1) !important;
-  transform: translateY(-1px);
-}
-
-.selection-popup .btn-ghost:active {
-  transform: translateY(0);
-}
-
-/* Suppression of native iOS menu */
-.no-native-callout, .no-native-callout * {
-  -webkit-touch-callout: none !important;
-}
-.no-native-callout {
-  -webkit-user-select: text !important;
-  user-select: text !important;
-}
-
-.no-native-callout * {
-  -webkit-touch-callout: none !important;
-}
-

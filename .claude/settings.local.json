@@ -6,7 +6,10 @@
       "Bash(dir \"e:\\\\projects\\\\listenMate++\\\\src-tauri\")",
       "Bash(dir:*)",
       "Bash(cargo tauri android build:*)",
-      "Bash(cmd /c run_build.bat)"
+      "Bash(cmd /c run_build.bat)",
+      "Bash(xargs -I {} find {} -name \"*file*\" -o -name \"*path*\")",
+      "Bash(.\\\\build-android.bat)",
+      "Bash(./build-android.bat)"
     ]
   }
 }

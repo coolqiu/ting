@@ -1,7 +1,6 @@
 use tauri::AppHandle;
 use tauri_plugin_shell::process::Command;
 use tauri_plugin_shell::ShellExt;
-use tauri::{Emitter, Manager};
 
 /// Helper to get a command for a binary, prioritizing sidecars.
 fn get_command(app: &AppHandle, binary: &str) -> Command {

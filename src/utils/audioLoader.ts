@@ -2,13 +2,13 @@ import { appDataDir, join } from '@tauri-apps/api/path';
 import { mkdir, exists } from '@tauri-apps/plugin-fs';
 import { invoke } from '@tauri-apps/api/core';
 
-export async function resolveAndArchiveAudio(rawPath: string, originalName: string): Promise<string> {
+export async function resolveAndArchiveAudio(rawPath: string, originalName: string): Promise<{ destPath: string, finalName: string }> {
     const isAndroidContent = rawPath.startsWith('content://');
     const isMobileFile = rawPath.startsWith('file://');
     const isAlreadyArchived = rawPath.includes('audio_archive');
 
     if (!isAndroidContent && (!isMobileFile || isAlreadyArchived)) {
-        return rawPath;
+        return { destPath: rawPath, finalName: originalName };
     }
 
     try {
@@ -26,16 +26,23 @@ export async function resolveAndArchiveAudio(rawPath: string, originalName: stri
             await mkdir(archiveDir, { recursive: true });
         }
 
-        const safeName = originalName.replace(/[^a-zA-Z0-9.\-_]/g, '_');
-        const destPath = await join(archiveDir, `${Date.now()}_${safeName}`);
+        // Allow Unicode characters (Chinese, etc.) while keeping the filename safe
+        // Build 68+: Fixed Chinese filename encoding issue - complete keep original name
+        // Original filename from file system is already valid, no need to filter
+        const destPath = await join(archiveDir, `${Date.now()}_${originalName}`);
 
+        console.log(`[AudioLoader Build 68] Chinese filename fix enabled: originalName="${originalName}", destPath="${destPath}"`);
         console.log(`[AudioLoader V53] Archiving via Native Platform Copy...`);
-        await invoke("copy_file_with_progress", { sourcePath: rawPath, destPath });
+        // Android may return the real filename from ContentResolver
+        const realFilename = await invoke<string | null>("copy_file_with_progress", { sourcePath: rawPath, destPath });
+        // If we got the real filename from Android, use it instead of what we extracted
+        const finalOriginalName = realFilename || originalName;
+        console.log(`[AudioLoader Build 68] Final filename: ${finalOriginalName}`);
 
-        return destPath;
+        return { destPath, finalName: finalOriginalName };
     } catch (e) {
         console.error('Archive error:', e);
-        return rawPath;
+        return { destPath: rawPath, finalName: originalName };
     }
 }
 

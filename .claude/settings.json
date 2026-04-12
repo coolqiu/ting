@@ -4,7 +4,8 @@
       "Bash(xargs grep:*)",
       "Bash(npx tsc:*)",
       "Bash(echo \"Exit code: $?\")",
-      "Bash(npm run:*)"
+      "Bash(npm run:*)",
+      "Bash(cargo check:*)"
     ]
   }
 }

@@ -6,7 +6,7 @@ pub async fn copy_file_with_progress(
     app: AppHandle,
     source_path: String,
     dest_path: String,
-) -> Result<(), String> {
+) -> Result<Option<String>, String> {
     #[cfg(target_os = "android")]
     {
         return copy_android_content(&app, &source_path, &dest_path).await;
@@ -42,7 +42,7 @@ pub async fn copy_file_with_progress(
                 let _ = app.emit("copy-progress", percentage);
             }
         }
-        Ok(())
+        Ok(None)
     }
 }
 
@@ -51,7 +51,7 @@ async fn copy_android_content(
     app: &AppHandle,
     source_uri: &str,
     dest_path: &str,
-) -> Result<(), String> {
+) -> Result<Option<String>, String> {
     use std::fs::File;
     use jni::objects::JValue;
     use jni::objects::JString;
@@ -151,5 +151,99 @@ async fn copy_android_content(
     }
 
     let _ = env.call_method(input_stream, "close", "()V", &[]);
-    Ok(())
+
+    // Try to get the actual display name from ContentResolver
+    let mut real_filename: Option<String> = None;
+
+    // Query to get display name - projection is just [OpenableColumns.DISPLAY_NAME]
+    let content_resolver = resolver;
+    let string_class = match env.find_class("java/lang/String") {
+        Ok(cls) => cls,
+        Err(_) => return Ok(real_filename),
+    };
+
+    // Create the _display_name string that we need for getColumnIndexOrThrow
+    // This is the literal value of android.provider.OpenableColumns.DISPLAY_NAME
+    let display_name_str = match env.new_string("_display_name") {
+        Ok(s) => s,
+        Err(_) => return Ok(real_filename),
+    };
+    // Need a second copy for the projection array because ownership is moved
+    let display_name_str_proj = match env.new_string("_display_name") {
+        Ok(s) => s,
+        Err(_) => return Ok(real_filename),
+    };
+
+    // Create projection array with just the DISPLAY_NAME column
+    let projection = match env.new_object_array(1, string_class, display_name_str_proj) {
+        Ok(arr) => arr,
+        Err(_) => return Ok(real_filename),
+    };
+
+    // Query the content resolver
+    // Signature: query(Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder)
+    match env.call_method(
+        content_resolver,
+        "query",
+        "(Landroid/net/Uri;[Ljava/lang/String;Ljava/lang/String;[Ljava/lang/String;Ljava/lang/String;)Landroid/database/Cursor;",
+        &[
+            JValue::from(&uri_obj),
+            JValue::from(&projection),
+            JValue::from(&JObject::null()),
+            JValue::from(&JObject::null()),
+            JValue::from(&JObject::null()),
+        ]
+    ) {
+        Ok(jvalue) => {
+            if let Ok(cursor) = jvalue.l() {
+                let moved = match env.call_method(&cursor, "moveToFirst", "()Z", &[]) {
+                    Ok(zj) => zj.z().unwrap_or(false),
+                    Err(_) => false,
+                };
+                if moved {
+                    // Get column index
+                    let col_idx = match env.call_method(
+                        &cursor,
+                        "getColumnIndexOrThrow",
+                        "(Ljava/lang/String;)I",
+                        &[JValue::from(&display_name_str)]
+                    ) {
+                        Ok(ij) => match ij.i() {
+                            Ok(idx) => idx,
+                            Err(_) => return Ok(real_filename),
+                        },
+                        Err(_) => return Ok(real_filename),
+                    };
+
+                    // Get the string value
+                    if let Ok(name_jv) = env.call_method(
+                        &cursor,
+                        "getString",
+                        "(I)Ljava/lang/String;",
+                        &[JValue::from(col_idx)]
+                    ) {
+                        if let Ok(name_obj) = name_jv.l() {
+                            let jstring: JString = name_obj.into();
+                            // Use an inner block to drop name_str before jstring is dropped
+                            let copied = {
+                                if let Ok(name_str) = env.get_string(&jstring) {
+                                    name_str.to_str().ok().map(|s| s.to_string())
+                                } else {
+                                    None
+                                }
+                            };
+                            if let Some(s) = copied {
+                                real_filename = Some(s);
+                            }
+                        }
+                    }
+                    // Close cursor
+                    let _ = env.call_method(&cursor, "close", "()V", &[]);
+                }
+            }
+        }
+        Err(_) => {}
+    }
+
+    Ok(real_filename)
 }

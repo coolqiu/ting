@@ -10,7 +10,6 @@ import { Search, MoreVertical, Trash2, Edit2, Play, Filter, BookOpen, Link, File
 import { resolveAndArchiveAudio, decodeSafe } from "../utils/audioLoader";
 
 export function LibraryView() {
-    const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
     const { t } = useTranslation();
     const { error, success } = useToast();
     const [materials, setMaterials] = useState<LearningMaterial[]>([]);
@@ -56,20 +55,28 @@ export function LibraryView() {
         if (!selected) return;
 
         const selectedPath = typeof selected === 'string' ? selected : selected[0];
-        const fileName = decodeSafe((selectedPath.split('/').pop() || selectedPath.split('\\').pop() || 'unknown.wav').split('?')[0]);
+        let rawFileName = (selectedPath.split('/').pop() || selectedPath.split('\\').pop() || 'unknown.wav').split('?')[0];
+
+        // For Android content URIs like "content://...", split('/').pop() gives the last segment
+        // but sometimes it's just an ID number, and the actual filename needs to be obtained differently
+        // However, if we got something that looks like a number only (e.g. "12345"), it's probably wrong
+        // But we can't get the filename from content URI anyway, so we keep what we have
+        const fileName = decodeSafe(rawFileName);
 
         try {
             setIsImporting(true);
             setImportProgress(0);
 
-            const finalPath = await resolveAndArchiveAudio(selectedPath, fileName);
+            const { destPath: finalPath, finalName } = await resolveAndArchiveAudio(selectedPath, fileName);
             const info = await invoke<PlaybackInfo>("load_audio", { path: finalPath });
+            // Use the finalName from archiving (may be updated by Android with real filename)
+            const usedFileName = finalName || fileName;
 
             setIsImporting(false);
 
             if (info?.file_path) {
                 const materialId: number = await invoke("add_or_update_material", {
-                    title: info.file_name ? decodeSafe(info.file_name) : fileName,
+                    title: usedFileName, // Use the final name (may be updated by Android with real filename)
                     sourceUrl: info.file_path,
                     durationMs: Math.round((info.duration_secs || 0) * 1000),
                 });
@@ -91,8 +98,12 @@ export function LibraryView() {
                 navigate("/workspace");
                 return;
             }
-            const finalPath = await resolveAndArchiveAudio(mat.source_url, mat.title);
+            const { destPath: finalPath, finalName } = await resolveAndArchiveAudio(mat.source_url, mat.title);
             await invoke<PlaybackInfo>("load_audio", { path: finalPath });
+            // Update material title if we got a better filename from Android
+            if (finalName !== mat.title && finalName !== "downloaded_audio.mp3") {
+                await invoke("update_material_title", { id: mat.id, title: finalName });
+            }
             await invoke("set_material_id", { id: mat.id });
 
             // Set session flag for StudyWorkspace to show resume prompt
@@ -137,10 +148,7 @@ export function LibraryView() {
                         <p style={{ margin: 0, color: "var(--text-muted)" }}>{t("library.subtitle")}</p>
                     </div>
                     <div style={{ display: "flex", gap: "10px" }}>
-                        {/* URL import only available on desktop (requires yt-dlp + ffmpeg sidecar) */}
-                        {!isMobile && (
-                            <button className="btn btn-ghost" onClick={() => setShowUrlModal(true)}>{t("library.importUrl")}</button>
-                        )}
+                        <button className="btn btn-ghost" onClick={() => setShowUrlModal(true)}>{t("library.importUrl")}</button>
                         <button className="btn btn-primary" onClick={handleAddMaterial}>{t("library.addLocal")}</button>
                     </div>
                 </div>
@@ -208,11 +216,9 @@ export function LibraryView() {
                                 {t("library.emptyDesc")}
                             </p>
                             <div style={{ display: "flex", gap: "12px", justifyContent: "center" }}>
-                                {!isMobile && (
-                                    <button className="btn btn-ghost" onClick={() => setShowUrlModal(true)} style={{ gap: "8px" }}>
-                                        <Link size={16} /> {t("library.importUrl")}
-                                    </button>
-                                )}
+                                <button className="btn btn-ghost" onClick={() => setShowUrlModal(true)} style={{ gap: "8px" }}>
+                                    <Link size={16} /> {t("library.importUrl")}
+                                </button>
                                 <button className="btn btn-primary" onClick={handleAddMaterial} style={{ gap: "8px" }}>
                                     <FileAudio size={16} /> {t("library.addLocal")}
                                 </button>
@@ -228,7 +234,18 @@ export function LibraryView() {
                             }}>
                                 <div style={{ flex: 1, minWidth: 0, marginBottom: "8px" }}>
                                     <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "4px" }}>
-                                        <h3 style={{ margin: 0, fontSize: "16px", fontWeight: 600 }}>{decodeSafe(mat.title)}</h3>
+                                        <h3 style={{ margin: 0, fontSize: "16px", fontWeight: 600 }}>
+                                            {
+                                                // Fix for old incorrectly imported files: if title matches the pattern "123_msf_456",
+                                                // it's probably because Chinese was stripped out, try extract from sourceUrl
+                                                /^(\d+_)?msf[_:]\d+$/.test(mat.title) ? (() => {
+                                                    const basename = mat.source_url.split(/[/\\]/).pop() || mat.title;
+                                                    // New archive format: {timestamp}_{originalName}, just remove the timestamp prefix
+                                                    const cleaned = basename.replace(/^\d+_/, "");
+                                                    return decodeSafe(cleaned) || mat.title;
+                                                })() : decodeSafe(mat.title)
+                                            }
+                                        </h3>
                                         {mat.progress_secs !== null && mat.progress_secs > 0 && (
                                             <span style={{
                                                 background: "rgba(var(--accent-primary-rgb), 0.1)",
@@ -313,18 +330,19 @@ export function LibraryView() {
                 </div>
             </div>
 
-            {/* URL Import Modal — desktop only */}
-            {!isMobile && showUrlModal && (
+            {/* URL Import Modal */}
+            {showUrlModal && (
                 <UrlImportModal
                     onClose={() => setShowUrlModal(false)}
                     onSuccess={async (path) => {
                         setShowUrlModal(false);
                         try {
-                            const finalPath = await resolveAndArchiveAudio(path, "downloaded_audio.mp3");
+                            const { destPath: finalPath, finalName } = await resolveAndArchiveAudio(path, "downloaded_audio.mp3");
                             const info = await invoke<PlaybackInfo>("load_audio", { path: finalPath });
                             if (info?.file_path) {
+                                const title = finalName !== "downloaded_audio.mp3" ? finalName : (info.file_name || "downloaded_audio.mp3");
                                 const materialId: number = await invoke("add_or_update_material", {
-                                    title: info.file_name,
+                                    title,
                                     sourceUrl: info.file_path,
                                     durationMs: Math.round(info.duration_secs * 1000),
                                 });

@@ -834,7 +834,8 @@ export default function StudyWorkspace() {
             const fileName = (selectedPath.split('/').pop() || selectedPath.split('\\').pop() || 'unknown.wav').split('?')[0];
 
             try {
-                const finalPath = await resolveAndArchiveAudio(selectedPath, fileName);
+                const { destPath: finalPath, finalName } = await resolveAndArchiveAudio(selectedPath, fileName);
+                const usedFileName = finalName || fileName;
                 const info = await invoke<PlaybackInfo>("load_audio", {
                     path: finalPath,
                 });
@@ -843,7 +844,7 @@ export default function StudyWorkspace() {
                 // Keeping only the isBootingRef safety at the command gate level.
                 try {
                     const materialId: number = await invoke("add_or_update_material", {
-                        title: fileName,
+                        title: usedFileName,
                         sourceUrl: finalPath,
                         durationMs: info.duration_secs * 1000
                     });

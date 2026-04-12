@@ -20,10 +20,10 @@ import "./StudyWorkspace.css";
 const WaveformBars = ({ isPlaying }: { isPlaying: boolean }) => (
     <div className={`waveform-visualizer ${isPlaying ? 'playing' : ''}`} style={{ display: 'flex', gap: '4px', alignItems: 'center', height: '60px' }}>
         {[...Array(40)].map((_, i) => (
-            <div key={i} className="v-bar" style={{ 
-                width: '3px', 
-                height: `${Math.random() * 100}%`, 
-                background: 'var(--accent-primary)', 
+            <div key={i} className="v-bar" style={{
+                width: '3px',
+                height: `${Math.random() * 100}%`,
+                background: 'var(--accent-primary)',
                 opacity: 0.6,
                 borderRadius: '1.5px',
                 animation: isPlaying ? `waveform-bounce ${0.5 + Math.random()}s infinite ease-in-out` : 'none'
@@ -57,7 +57,7 @@ export default function StudyWorkspaceMain() {
             if (state && state.file_path !== "") {
                 const now = Date.now();
                 const isSeeking = (now - isSeekingRef.current < 3000); // 3s lock
-                
+
                 if (isSeeking) {
                     // Logic Guard: During lock, UI stays pinned.
                     // console.log("[PollState] Locked! Manual seek in progress.");
@@ -65,10 +65,10 @@ export default function StudyWorkspaceMain() {
                         setPosition(targetPositionRef.current);
                         setPlayback(prev => prev ? { ...prev, position_secs: targetPositionRef.current! } : prev);
                     }
-                    return; 
+                    return;
                 }
-                
-                targetPositionRef.current = null; 
+
+                targetPositionRef.current = null;
                 setPlayback(state);
                 setPosition(state.position_secs);
                 setDuration(state.duration_secs);
@@ -95,14 +95,28 @@ export default function StudyWorkspaceMain() {
     // Detect platform
     const isMobile = useMemo(() => /Android|iPhone|iPad|iPod/i.test(navigator.userAgent), []);
 
-    // Build 67: Robust recursive decoding via global utility
+    // Bug fix: playback.file_name may be the internal archive path (e.g. "1775158885924_msf_10002394_…")
+    // Priority: currentMaterial.title (if it looks like a real title) → extract from source_url → extract from file_path → file_name
+    // For old incorrectly imported files: title might be just the prefix (all Chinese stripped out), so fall back to extraction
     const displayName = useMemo(() => {
-        // Priority: title from DB → filename from path → fallback
-        const raw = currentMaterial?.title || playback?.file_path || playback?.file_name || "";
+        // If we have a currentMaterial title but it matches the prefix pattern (looks like 123_msf_456, 123_msf:456, or just msf:456),
+        // it's probably an old incorrectly imported file - fall back to extraction from source_url
+        const titleIsInvalid = currentMaterial?.title && /^(\d+_)?msf[_:]\d+$/.test(currentMaterial.title);
+
+        if (currentMaterial?.title && !titleIsInvalid) {
+            return decodeSafe(currentMaterial.title);
+        }
+
+        // Try extract from currentMaterial.source_url first (this always has the full actual path)
+        let raw = currentMaterial?.source_url || playback?.file_path || playback?.file_name || "";
         const basename = raw.split(/[/\\]/).pop() || raw;
-        const cleaned = basename.replace(/^\d+_msf_\d+_/, "");
+
+        // Strip internal archive timestamp prefix: digits_
+        // e.g. "1775158885924_绝望主妇-S01E07.mp3" → "绝望主妇-S01E07.mp3"
+        const cleaned = basename.replace(/^\d+_/, "");
+
         return decodeSafe(cleaned) || "Unknown";
-    }, [currentMaterial?.title, playback?.file_path, playback?.file_name]);
+    }, [currentMaterial?.title, currentMaterial?.source_url, playback?.file_path, playback?.file_name]);
 
     useEffect(() => {
         if (playback?.material_id) {
@@ -125,22 +139,24 @@ export default function StudyWorkspaceMain() {
         });
         if (selected) {
             const selectedPath = typeof selected === 'string' ? selected : selected[0];
-            const fileName = decodeSafe(selectedPath.split(/[/\\]/).pop() || 'audio.mp3');
+            const rawFileName = selectedPath.split('/').pop() || selectedPath.split('\\').pop() || 'audio.mp3';
+            const fileName = decodeSafe(rawFileName);
             try {
-                const finalPath = await resolveAndArchiveAudio(selectedPath, fileName);
+                const { destPath: finalPath, finalName } = await resolveAndArchiveAudio(selectedPath, fileName);
+                const usedFileName = finalName || fileName;
                 const info = await invoke<PlaybackInfo>("load_audio", { path: finalPath });
                 const materialId: number = await invoke("add_or_update_material", {
-                    title: info.file_name ? decodeSafe(info.file_name) : fileName,
+                    title: usedFileName, // Use the final name (may be updated by Android with real filename)
                     source_url: finalPath,
                     duration_ms: info.duration_secs * 1000
                 });
-                
-                setPlayback({ 
-                    ...info, 
-                    material_id: materialId, 
-                    segments: [], 
-                    active_segment_id: null, 
-                    loop_remaining: null 
+
+                setPlayback({
+                    ...info,
+                    material_id: materialId,
+                    segments: [],
+                    active_segment_id: null,
+                    loop_remaining: null
                 });
                 setDuration(info.duration_secs);
                 setPosition(0);
@@ -253,24 +269,24 @@ export default function StudyWorkspaceMain() {
                                         <span>{formatTime(duration)}</span>
                                     </div>
                                     <div className="progress-bar-wrapper" style={{ height: "6px", background: "var(--bg-tertiary)", borderRadius: "3px", position: "relative", cursor: "pointer" }}
-                                         onClick={(e) => {
-                                             const rect = e.currentTarget.getBoundingClientRect();
-                                             const pct = (e.clientX - rect.left) / rect.width;
-                                             audioEngine.handleSeek(pct * duration);
-                                         }}>
+                                        onClick={(e) => {
+                                            const rect = e.currentTarget.getBoundingClientRect();
+                                            const pct = (e.clientX - rect.left) / rect.width;
+                                            audioEngine.handleSeek(pct * duration);
+                                        }}>
                                         <div style={{ width: `${(position / (duration || 1)) * 100}%`, height: "100%", background: "var(--accent-primary)", borderRadius: "3px" }} />
                                         {tempA !== null && (
                                             <div style={{ position: "absolute", left: `${(tempA / duration) * 100}%`, top: "-6px", background: "var(--accent-primary)", color: "white", padding: "0 4px", fontSize: "10px", borderRadius: "4px" }}>A</div>
                                         )}
                                         {(playback.segments || []).map(seg => (
-                                            <div key={seg.id} style={{ 
-                                                position: "absolute", 
-                                                left: `${(seg.start_secs / duration) * 100}%`, 
-                                                width: `${((seg.end_secs - seg.start_secs) / duration) * 100}%`, 
-                                                height: "100%", 
-                                                background: seg.id === playback.active_segment_id ? "var(--accent-primary)" : "rgba(162, 155, 254, 0.3)", 
+                                            <div key={seg.id} style={{
+                                                position: "absolute",
+                                                left: `${(seg.start_secs / duration) * 100}%`,
+                                                width: `${((seg.end_secs - seg.start_secs) / duration) * 100}%`,
+                                                height: "100%",
+                                                background: seg.id === playback.active_segment_id ? "var(--accent-primary)" : "rgba(162, 155, 254, 0.3)",
                                                 opacity: 0.5,
-                                                borderRadius: "3px" 
+                                                borderRadius: "3px"
                                             }} />
                                         ))}
                                     </div>
@@ -279,7 +295,7 @@ export default function StudyWorkspaceMain() {
                                 <div style={{ display: "flex", justifyContent: "center", gap: "24px", alignItems: "center", marginBottom: "24px" }}>
                                     <button className="btn-ghost" style={{ fontSize: "20px" }} onClick={() => audioEngine.handleSkip(-5)}>⏪</button>
                                     <button className="btn-primary" style={{ width: "64px", height: "64px", borderRadius: "32px", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "24px" }}
-                                            onClick={audioEngine.handlePlayPause}>
+                                        onClick={audioEngine.handlePlayPause}>
                                         {isPlaying ? <Pause /> : <Play fill="currentColor" />}
                                     </button>
                                     <button className="btn-ghost" style={{ fontSize: "20px" }} onClick={() => audioEngine.handleSkip(5)}>⏩</button>
@@ -291,19 +307,19 @@ export default function StudyWorkspaceMain() {
                                 </div>
 
                                 <div className="volume-speed" style={{ display: "flex", justifyContent: "space-between", marginTop: "24px" }}>
-                                     <div style={{ display: "flex", alignItems: "center", gap: "8px", color: "var(--text-muted)" }}>
-                                         <Volume2 size={16} />
-                                         <input type="range" min="0" max="1" step="0.1" value={volume} onChange={(e) => audioEngine.handleVolumeChange(parseFloat(e.target.value))} />
-                                     </div>
-                                     <div style={{ display: "flex", gap: "8px" }}>
-                                         {[0.8, 1, 1.25].map(s => (
-                                             <button key={s} onClick={() => audioEngine.handleSpeedChange(s)} style={{ 
-                                                 padding: "4px 8px", borderRadius: "4px", fontSize: "12px", 
-                                                 background: speed === s ? "var(--accent-primary)" : "var(--bg-tertiary)",
-                                                 color: speed === s ? "white" : "var(--text-secondary)"
-                                             }}>{s}x</button>
-                                         ))}
-                                     </div>
+                                    <div style={{ display: "flex", alignItems: "center", gap: "8px", color: "var(--text-muted)" }}>
+                                        <Volume2 size={16} />
+                                        <input type="range" min="0" max="1" step="0.1" value={volume} onChange={(e) => audioEngine.handleVolumeChange(parseFloat(e.target.value))} />
+                                    </div>
+                                    <div style={{ display: "flex", gap: "8px" }}>
+                                        {[0.8, 1, 1.25].map(s => (
+                                            <button key={s} onClick={() => audioEngine.handleSpeedChange(s)} style={{
+                                                padding: "4px 8px", borderRadius: "4px", fontSize: "12px",
+                                                background: speed === s ? "var(--accent-primary)" : "var(--bg-tertiary)",
+                                                color: speed === s ? "white" : "var(--text-secondary)"
+                                            }}>{s}x</button>
+                                        ))}
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -345,7 +361,7 @@ export default function StudyWorkspaceMain() {
                                                 {t("workspace_v2.processing")}: {transcript.transcribeProgress}%
                                             </div>
                                         )}
-                                        <TranscriptView 
+                                        <TranscriptView
                                             lines={transcript.transcriptLines}
                                             position={position}
                                             isPlaying={isPlaying}

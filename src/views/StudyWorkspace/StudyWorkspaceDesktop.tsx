@@ -75,10 +75,11 @@ export default function StudyWorkspaceDesktop() {
             const selectedPath = typeof selected === 'string' ? selected : selected[0];
             const fileName = decodeSafe(selectedPath.split(/[/\\]/).pop() || 'audio.mp3');
             try {
-                const finalPath = await resolveAndArchiveAudio(selectedPath, fileName);
+                const { destPath: finalPath, finalName } = await resolveAndArchiveAudio(selectedPath, fileName);
                 const info = await invoke<PlaybackInfo>("load_audio", { path: finalPath });
+                const usedFileName = finalName !== fileName ? finalName : fileName;
                 const materialId: number = await invoke("add_or_update_material", {
-                    title: info.file_name ? decodeSafe(info.file_name) : fileName,
+                    title: usedFileName !== 'audio.mp3' ? usedFileName : (info.file_name ? decodeSafe(info.file_name) : fileName),
                     sourceUrl: finalPath,
                     durationMs: info.duration_secs * 1000
                 });
