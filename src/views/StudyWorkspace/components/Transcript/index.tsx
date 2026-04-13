@@ -1,6 +1,7 @@
 import { useRef, useEffect } from "react";
 import TranscriptLineDesktop from "./TranscriptLine.desktop";
 import TranscriptLineAndroid from "./TranscriptLine.android";
+import TranscriptLineIos from "./TranscriptLine.ios";
 import { WordTimestamp } from "../../../../types";
 
 interface TranscriptViewProps {
@@ -23,6 +24,11 @@ export default function TranscriptView({
     materialId
 }: TranscriptViewProps) {
     const containerRef = useRef<HTMLDivElement>(null);
+
+    const isIos = /iPad|iPhone|iPod/.test(navigator.userAgent);
+    const LineComponent = isMobile 
+        ? (isIos ? TranscriptLineIos : TranscriptLineAndroid) 
+        : TranscriptLineDesktop;
 
     // Auto-scroll logic (Build 97.1)
     useEffect(() => {
