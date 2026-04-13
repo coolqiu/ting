@@ -1,4 +1,4 @@
-use tauri::AppHandle;
+use tauri::{AppHandle, Manager, Emitter};
 use tauri_plugin_shell::process::Command;
 use tauri_plugin_shell::ShellExt;
 

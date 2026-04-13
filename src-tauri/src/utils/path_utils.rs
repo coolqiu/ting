@@ -11,15 +11,15 @@ pub fn resolve_internal_path(app: &AppHandle, raw_path: &str) -> String {
     // 1. URL Decode first (handles Chinese filenames like %E7%BB%9D%E6%9C%9B)
     let decoded = percent_decode_str(raw_path).decode_utf8_lossy();
     // 2. Remove file:// prefix if present
-    let mut path_str = decoded.trim_start_matches("file://").to_string();
+    let path_str = decoded.trim_start_matches("file://").to_string();
     
     // [V53] Critical Fix for iOS: Normalize redundant 'Library/Library' segments
     #[cfg(target_os = "ios")]
-    {
-        if path_str.contains("Library/Library") {
-            path_str = path_str.replace("Library/Library", "Library");
-        }
-    }
+    let path_str = if path_str.contains("Library/Library") {
+        path_str.replace("Library/Library", "Library")
+    } else {
+        path_str
+    };
     
     // --- Robust iOS Root Anchoring ---
     // Paths on iOS look like: file:///.../Application/<UUID>/<RelativePath>
