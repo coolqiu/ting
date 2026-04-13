@@ -9,7 +9,7 @@ export class IosSelectionStrategy {
         document.addEventListener("selectionchange", this.handleSelectionChange);
         document.addEventListener("mouseup", this.handleLift, { passive: false });
         document.addEventListener("touchend", this.handleLift, { passive: false });
-        // iOS: Do NOT prevent contextmenu to allow native selection menu
+        // iOS: Allow native selection menu by NOT preventing contextmenu
     }
 
     public onUnmount() {
@@ -25,42 +25,57 @@ export class IosSelectionStrategy {
         const sel = window.getSelection();
         if (!sel || sel.isCollapsed) {
             this.context.setSelectionPopup(null);
+            this.context.setIsSelecting(false);
             return;
         }
 
+        // Mark as selecting immediately
+        this.context.setIsSelecting(true);
+
+        // Wait for selection to stabilize (user has stopped dragging handles)
         this.selectTimeout = window.setTimeout(() => {
-            const sel = window.getSelection();
-            if (sel && !sel.isCollapsed) {
-                this.context.setIsSelecting(true);
+            const stableSel = window.getSelection();
+            if (!stableSel || stableSel.isCollapsed || stableSel.rangeCount === 0) {
+                this.context.setIsSelecting(false);
+                return;
             }
-        }, 150);
+            const range = stableSel.getRangeAt(0);
+
+            // Only show popup if selection is inside a transcript element
+            const startNode = range.startContainer;
+            const startEl = startNode.nodeType === 3 ? startNode.parentElement : startNode as HTMLElement;
+            if (!startEl?.closest('.transcript-text') && !startEl?.closest('.transcript-word')) {
+                this.context.setIsSelecting(false);
+                return;
+            }
+
+            this.syncSelection(range);
+            this.context.setIsSelecting(false);
+        }, 200);
     };
 
     private handleLift = (e?: any) => {
         this.context.setIsSelecting(false);
-
+        // iOS: We do NOT call preventDefault here to allow native callouts
         if (e?.target && (e.target as HTMLElement).closest('.selection-popup')) return;
+    };
 
-        const sel = window.getSelection();
-        if (!sel || sel.isCollapsed || sel.rangeCount === 0) return;
-
-        const range = sel.getRangeAt(0);
-        const startNode = range.startContainer;
-        const startEl = startNode.nodeType === 3 ? startNode.parentElement : startNode as HTMLElement;
-        if (!startEl?.closest('.transcript-text') && !startEl?.closest('.transcript-word')) return;
-
-        // iOS: Do NOT prevent default - let native selection work
-        this.syncSelection(range);
+    private nodeToElement = (node: Node): Element | null => {
+        if (node.nodeType === Node.TEXT_NODE) {
+            return node.parentElement;
+        }
+        return node as Element;
     };
 
     private syncSelection = (range: Range) => {
         const rect = range.getBoundingClientRect();
         if (rect.width === 0 || rect.height === 0) return;
 
-        const closestStart = (range.startContainer.parentElement?.closest('.transcript-word') ||
-            (range.startContainer as HTMLElement).closest('.transcript-word')) as HTMLElement;
-        const closestEnd = (range.endContainer.parentElement?.closest('.transcript-word') ||
-            (range.endContainer as HTMLElement).closest('.transcript-word')) as HTMLElement;
+        const startEl = this.nodeToElement(range.startContainer);
+        const endEl = this.nodeToElement(range.endContainer);
+
+        const closestStart = startEl?.closest('.transcript-word') as HTMLElement | null;
+        const closestEnd = endEl?.closest('.transcript-word') as HTMLElement | null;
 
         if (closestStart && closestEnd) {
             const sIdx = parseInt(closestStart.dataset.index || "0", 10);
