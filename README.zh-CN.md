@@ -37,7 +37,7 @@ Ting 是一款功能强大、跨平台的语言学习应用程序，旨在通过
 
 1. 克隆仓库：
    ```bash
-   git clone https://github.com/treenewbeebee/ting.git
+   git clone https://github.com/coolqiu/ting.git
    cd ting
    ```
 

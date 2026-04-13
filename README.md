@@ -38,7 +38,7 @@ Ting is a powerful, cross-platform language learning application designed to hel
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/treenewbeebee/ting.git
+   git clone https://github.com/coolqiu/ting.git
    cd ting
    ```
 

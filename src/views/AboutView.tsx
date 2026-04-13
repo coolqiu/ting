@@ -44,7 +44,7 @@ export function AboutView() {
 
                         <div style={{ marginTop: "24px", display: "flex", justifyContent: "center", gap: "12px" }}>
                             <button
-                                onClick={() => handleOpenLink("https://github.com/treenewbeebee/ting")}
+                                onClick={() => handleOpenLink("https://github.com/coolqiu/ting")}
                                 className="btn btn-primary"
                                 style={{ cursor: "pointer" }}
                             >
