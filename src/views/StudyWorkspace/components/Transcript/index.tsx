@@ -56,8 +56,6 @@ export default function TranscriptView({
         }
     };
 
-    const LineComponent = isMobile ? TranscriptLineAndroid : TranscriptLineDesktop;
-
     if (lines.length === 0) {
         return (
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: 'var(--text-muted)' }}>
