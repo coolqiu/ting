@@ -133,8 +133,12 @@ function AppContent({ user, onLogout }: { user: UserInfo; onLogout: () => void }
     { id: "about", path: "/about", icon: Info, label: t("nav.about") },
   ];
 
+  const ua = window.navigator.userAgent;
+  const isIos = /iPad|iPhone|iPod/.test(ua);
+  const isAndroid = /Android/i.test(ua);
+
   return (
-    <div className={`app-container ${sidebarOpen ? "sidebar-open" : "sidebar-closed"} ${isMobile ? "is-mobile" : "is-desktop"}`}>
+    <div className={`app-container ${sidebarOpen ? "sidebar-open" : "sidebar-closed"} ${isMobile ? "is-mobile" : "is-desktop"} ${isIos ? "platform-ios" : ""} ${isAndroid ? "platform-android" : ""}`}>
       {/* Mobile Drawer Backdrop */}
       {isMobile && sidebarOpen && (
         <div className="sidebar-backdrop" onClick={() => setSidebarOpen(false)}></div>
