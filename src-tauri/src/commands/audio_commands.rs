@@ -140,6 +140,38 @@ pub async fn save_recording_as(app: tauri::AppHandle, bytes: Vec<u8>) -> Result<
     Ok(())
 }
 
+/// Moves a recording from the volatile temp directory to the persistent audio archive.
+/// Returns the new stable path (containing the "audio_archive" marker).
+#[tauri::command]
+pub async fn archive_recording(app: tauri::AppHandle, temp_path: String) -> Result<String, String> {
+    use tauri::Manager;
+    let app_dir = app
+        .path()
+        .app_data_dir()
+        .map_err(|e| format!("Failed to get app data dir: {}", e))?;
+    
+    let archive_dir = app_dir.join("audio_archive").join("recordings");
+    std::fs::create_dir_all(&archive_dir).map_err(|e| format!("Failed to create archive dir: {}", e))?;
+
+    let ts = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap_or_default()
+        .as_millis();
+    
+    let filename = format!("rec_{}.wav", ts);
+    let dest_path = archive_dir.join(&filename);
+
+    let src = std::path::Path::new(&temp_path);
+    if !src.exists() {
+        return Err("Source temp file does not exist".to_string());
+    }
+
+    std::fs::copy(src, &dest_path).map_err(|e| format!("Failed to archive recording: {}", e))?;
+    
+    // Return a path that resolve_internal_path can handle: relative to app_data_dir or absolute with marker
+    Ok(format!("audio_archive/recordings/{}", filename))
+}
+
 #[tauri::command]
 pub fn restart_segment(state: tauri::State<'_, AudioState>) -> Result<(), String> {
     let info = state.handle.get_state();

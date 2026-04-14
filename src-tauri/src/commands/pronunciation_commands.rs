@@ -73,10 +73,11 @@ pub async fn save_pronunciation_score(
     reference_text: String,
     duration_ms: i64,
     score: f64,
+    audio_path: Option<String>,
 ) -> Result<(), String> {
     let user_id = session.current_user_id().unwrap_or(0);
     store
-        .save_pronunciation_score(user_id, material_id, &reference_text, duration_ms, score)
+        .save_pronunciation_score(user_id, material_id, &reference_text, duration_ms, score, audio_path.as_deref())
         .map_err(|e| format!("Database error: {}", e))
 }
 

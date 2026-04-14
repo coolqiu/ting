@@ -14,6 +14,7 @@ interface DiffToken {
 }
 
 interface ReferenceMeta {
+    material_id: number | null;
     audio_path: string | null;
     start_ms: number | null;
     end_ms: number | null;
@@ -51,7 +52,7 @@ export function SpeakingView() {
     const { error: toastError, success: toastSuccess } = useToast();
     const [step, setStep] = useState<"idle" | "recording" | "evaluating" | "result">("idle");
     const [referenceText, setReferenceText] = useState("");
-    const [refMeta, setRefMeta] = useState<ReferenceMeta>({ audio_path: null, start_ms: null, end_ms: null });
+    const [refMeta, setRefMeta] = useState<ReferenceMeta>({ material_id: null, audio_path: null, start_ms: null, end_ms: null });
     const [isPlayingRef, setIsPlayingRef] = useState(false);
     const [editingRef, setEditingRef] = useState(false);
     const [diffTokens, setDiffTokens] = useState<DiffToken[]>([]);
@@ -107,6 +108,7 @@ export function SpeakingView() {
                 if (res && res.text) {
                     setReferenceText(res.text.trim());
                     setRefMeta({
+                        material_id: res.material_id,
                         audio_path: res.audio_path,
                         start_ms: res.start_ms,
                         end_ms: res.end_ms
@@ -154,23 +156,44 @@ export function SpeakingView() {
             const transcribed = words.length > 0 ? words.map(w => w.word).join(" ") : "";
             setTranscribedText(transcribed);
 
-            computeBasicScore(referenceText, transcribed);
+            const finalScore = computeBasicScore(referenceText, transcribed);
             setStep("result");
+
+            // --- Persistence Logic (Build 77) ---
+            let archivedPath: string | null = null;
+            if (finalScore >= 80) {
+                try {
+                    archivedPath = await invoke<string>("archive_recording", { tempPath });
+                } catch (err) {
+                    console.warn("Failed to archive recording:", err);
+                }
+            }
+
+            // Always save the score to history, even if score < 80 (archivedPath will be null)
+            await invoke("save_pronunciation_score", {
+                materialId: refMeta.material_id || 0,
+                referenceText: referenceText,
+                durationMs: recordingSecs * 1000,
+                score: finalScore,
+                audioPath: archivedPath
+            });
+
         } catch (e) {
             toastError(t("speaking.evalFail", { error: String(e) }));
             setStep("idle");
         }
-    }, [referenceText, t, toastError]);
+    }, [referenceText, t, toastError, recordingSecs, refMeta.material_id]);
 
-    const computeBasicScore = (ref: string, trans: string) => {
+    const computeBasicScore = (ref: string, trans: string): number => {
         const diff = diffWords(ref, trans) as DiffToken[];
         setDiffTokens(diff);
         const correctChars = diff
             .filter(d => !d.added && !d.removed)
             .reduce((acc, d) => acc + d.value.length, 0);
-        const refChars = ref.replace(/\s+/g, " ").length;
+        const refChars = ref.replace(/\s+/g, " ").length || 1;
         const s = Math.max(0, Math.min(100, Math.round((correctChars / refChars) * 100)));
         setScore(s);
+        return s;
     };
 
     const reset = useCallback(() => {

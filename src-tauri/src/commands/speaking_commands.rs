@@ -9,6 +9,7 @@ use tauri::State;
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ReferenceText {
     pub text: String,
+    pub material_id: Option<i64>,
     pub audio_path: Option<String>,
     pub start_ms: Option<i64>,
     pub end_ms: Option<i64>,
@@ -59,6 +60,7 @@ pub fn get_reference_text(
                     if !t.trim().is_empty() {
                         return Ok(Some(ReferenceText {
                             text: t,
+                            material_id: info.material_id,
                             audio_path: Some(info.file_path.clone()),
                             start_ms: Some(start_ms),
                             end_ms: Some(end_ms),
@@ -92,6 +94,7 @@ pub fn get_reference_text(
     if let Some((exercise, audio_path)) = random {
         return Ok(Some(ReferenceText {
             text: exercise.original_text,
+            material_id: Some(exercise.material_id),
             audio_path: Some(audio_path),
             start_ms: Some(exercise.start_ms),
             end_ms: Some(exercise.end_ms),
@@ -112,6 +115,7 @@ pub fn set_shadowing_override(
     let mut ov = shadowing_state.override_segment.lock().unwrap();
     *ov = Some(ReferenceText {
         text,
+        material_id: None, // Overrides are usually ad-hoc
         audio_path: Some(audio_path),
         start_ms: Some(start_ms),
         end_ms: Some(end_ms),
@@ -168,6 +172,7 @@ fn find_sentence_at_ms(
     
     Some(ReferenceText {
         text: text.trim().to_string(),
+        material_id: None, // Will be filled by info.material_id in caller if needed, or left None
         audio_path: Some(file_path.to_string()),
         start_ms: Some(sub_words[0].start_ms),
         end_ms: Some(sub_words[sub_words.len()-1].end_ms),

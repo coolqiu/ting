@@ -109,9 +109,16 @@ pub fn run() {
                 unsafe {
                     let session: *mut objc::runtime::Object = msg_send![class!(AVAudioSession), sharedInstance];
                     let str_class = class!(NSString);
-                    let category_str = "AVAudioSessionCategoryPlayback\0";
+                    let category_str = "AVAudioSessionCategoryPlayAndRecord\0";
                     let category: *mut objc::runtime::Object = msg_send![str_class, stringWithUTF8String: category_str.as_ptr()];
-                    let _: () = msg_send![session, setCategory:category error:0];
+                    
+                    // Options: 1 = AVAudioSessionCategoryOptionMixWithOthers, 
+                    // 2 = AVAudioSessionCategoryOptionDuckOthers, 
+                    // 1 | 4 = (MixWithOthers | DefaultToSpeaker) -> 0x1 | 0x4 = 0x5
+                    // Let's use 0x1 (MixWithOthers) | 0x4 (DefaultToSpeaker) | 0x20 (AllowBluetooth) = 0x25
+                    let options: usize = 0x25; 
+                    
+                    let _: () = msg_send![session, setCategory:category withOptions:options error:0];
                     let _: () = msg_send![session, setActive:1 error:0];
                 }
             }
@@ -176,6 +183,7 @@ pub fn run() {
             audio_commands::get_playback_state,
             audio_commands::save_temp_audio,
             audio_commands::save_recording_as,
+            audio_commands::archive_recording,
             audio_commands::restart_segment,
             // AI
             ai_commands::check_model_exists,

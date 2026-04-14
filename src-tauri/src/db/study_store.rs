@@ -63,6 +63,7 @@ pub struct PronunciationLog {
     pub reference_text: String,
     pub duration_ms: i64,
     pub score: f64,
+    pub audio_path: Option<String>,
     pub created_at: String,
 }
 
@@ -229,10 +230,26 @@ impl StudyStore {
                 reference_text TEXT NOT NULL,
                 duration_ms INTEGER NOT NULL,
                 score REAL NOT NULL,
+                audio_path TEXT,
                 created_at DATETIME DEFAULT CURRENT_TIMESTAMP
             )",
             [],
         )?;
+
+        // Migration: Add audio_path to pronunciation_log if not exists
+        let has_audio_path: bool = conn
+            .query_row(
+                "SELECT count(*) FROM pragma_table_info('pronunciation_log') WHERE name='audio_path'",
+                [],
+                |row| Ok(row.get::<_, i64>(0)? > 0),
+            )
+            .unwrap_or(false);
+        if !has_audio_path {
+            let _ = conn.execute(
+                "ALTER TABLE pronunciation_log ADD COLUMN audio_path TEXT",
+                [],
+            );
+        }
 
         // Migration: Add user_id to review_schedule and update UNIQUE constraint
         let has_user_id_rs: bool = conn
@@ -807,12 +824,13 @@ impl StudyStore {
         reference_text: &str,
         duration_ms: i64,
         score: f64,
+        audio_path: Option<&str>,
     ) -> Result<()> {
         let conn = self.conn.lock().unwrap();
         conn.execute(
-            "INSERT INTO pronunciation_log (user_id, material_id, reference_text, duration_ms, score) 
-             VALUES (?1, ?2, ?3, ?4, ?5)",
-            params![user_id, material_id, reference_text, duration_ms, score],
+            "INSERT INTO pronunciation_log (user_id, material_id, reference_text, duration_ms, score, audio_path) 
+             VALUES (?1, ?2, ?3, ?4, ?5, ?6)",
+            params![user_id, material_id, reference_text, duration_ms, score, audio_path],
         )?;
         Ok(())
     }
@@ -825,7 +843,7 @@ impl StudyStore {
         let conn = self.conn.lock().unwrap();
         let mut stmt = conn.prepare(
             "
-            SELECT id, user_id, material_id, reference_text, duration_ms, score, created_at 
+            SELECT id, user_id, material_id, reference_text, duration_ms, score, audio_path, created_at 
             FROM pronunciation_log 
             WHERE user_id = ?1 
             ORDER BY created_at DESC LIMIT ?2
@@ -841,7 +859,8 @@ impl StudyStore {
                     reference_text: row.get(3)?,
                     duration_ms: row.get(4)?,
                     score: row.get(5)?,
-                    created_at: row.get(6)?,
+                    audio_path: row.get(6)?,
+                    created_at: row.get(7)?,
                 })
             })?
             .filter_map(Result::ok)
