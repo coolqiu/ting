@@ -55,14 +55,23 @@ pub fn resolve_internal_path(app: &AppHandle, raw_path: &str) -> String {
     }
 
     // --- Marker-based Fallback (for Android or non-standard iOS paths) ---
-    let markers = ["audio_archive", "downloads", "tmp", "Documents", "Inbox"];
+    let markers = ["audio_archive", "temp_recordings", "downloads", "tmp", "Documents", "Inbox"];
     for marker in markers {
         if let Some(pos) = path_str.find(marker) {
             let relative_part = &path_str[pos..]; 
             
             // Get the appropriate root based on the marker
             let target_base = if marker == "tmp" || marker == "Inbox" {
-                app.path().app_cache_dir().ok().map(|p| p.parent().unwrap().join("tmp"))
+                #[cfg(target_os = "ios")]
+                {
+                    // Core fix: iOS tmp is same level as Library, not inside it.
+                    // cache_dir: <Root>/Library/Caches -> parent().parent() -> <Root>
+                    app.path().app_cache_dir().ok().and_then(|p| p.parent().and_then(|p| p.parent().map(|p| p.join("tmp"))))
+                }
+                #[cfg(not(target_os = "ios"))]
+                {
+                    app.path().app_cache_dir().ok().map(|p| p.parent().unwrap().join("tmp"))
+                }
             } else if marker == "Documents" {
                 app.path().document_dir().ok()
             } else {

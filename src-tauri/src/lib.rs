@@ -108,18 +108,19 @@ pub fn run() {
                 use objc::{msg_send, sel, sel_impl, class};
                 unsafe {
                     let session: *mut objc::runtime::Object = msg_send![class!(AVAudioSession), sharedInstance];
-                    let str_class = class!(NSString);
-                    let category_str = "AVAudioSessionCategoryPlayAndRecord\0";
-                    let category: *mut objc::runtime::Object = msg_send![str_class, stringWithUTF8String: category_str.as_ptr()];
-                    
-                    // Options: 1 = AVAudioSessionCategoryOptionMixWithOthers, 
-                    // 2 = AVAudioSessionCategoryOptionDuckOthers, 
-                    // 1 | 4 = (MixWithOthers | DefaultToSpeaker) -> 0x1 | 0x4 = 0x5
-                    // Let's use 0x1 (MixWithOthers) | 0x4 (DefaultToSpeaker) | 0x20 (AllowBluetooth) = 0x25
-                    let options: usize = 0x25; 
-                    
-                    let _: () = msg_send![session, setCategory:category withOptions:options error:0];
-                    let _: () = msg_send![session, setActive:1 error:0];
+                    if !session.is_null() {
+                        let str_class = class!(NSString);
+                        let category_str = "AVAudioSessionCategoryPlayAndRecord\0";
+                        let category: *mut objc::runtime::Object = msg_send![str_class, stringWithUTF8String: category_str.as_ptr()];
+                        
+                        if !category.is_null() {
+                            // Options: 1 (Mix) | 4 (BT) | 8 (Speaker) | 32 (BT A2DP) = 45 -> 0x2D
+                            let options: usize = 0x2D; 
+                            
+                            let _: () = msg_send![session, setCategory:category withOptions:options error:0];
+                            let _: () = msg_send![session, setActive:1 error:0];
+                        }
+                    }
                 }
             }
 

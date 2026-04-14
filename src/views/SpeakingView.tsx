@@ -64,6 +64,21 @@ export function SpeakingView() {
     const audioRef = useRef<HTMLAudioElement | null>(null);
     const [recordingSecs, setRecordingSecs] = useState(0);
     const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+    const isMounted = useRef(true);
+
+    useEffect(() => {
+        isMounted.current = true;
+        return () => {
+            isMounted.current = false;
+            if (timerRef.current) clearInterval(timerRef.current);
+            if (recorderRef.current) {
+                recorderRef.current.stop();
+                recorderRef.current = null;
+            }
+            // Non-blocking cleanup: Unload audio to free resources
+            invoke("unload_audio").catch(() => {});
+        };
+    }, []);
 
 
     const playReferenceAudio = async () => {
@@ -105,7 +120,7 @@ export function SpeakingView() {
         const fetchInitial = async () => {
             try {
                 const res = await invoke<any>("get_reference_text");
-                if (res && res.text) {
+                if (res && res.text && isMounted.current) {
                     setReferenceText(res.text.trim());
                     setRefMeta({
                         material_id: res.material_id,
@@ -153,6 +168,8 @@ export function SpeakingView() {
             const tempPath = await invoke<string>("save_temp_audio", { bytes });
 
             const words = await invoke<WordTimestamp[]>("transcribe_audio", { path: tempPath });
+            if (!isMounted.current) return;
+
             const transcribed = words.length > 0 ? words.map(w => w.word).join(" ") : "";
             setTranscribedText(transcribed);
 
@@ -179,8 +196,10 @@ export function SpeakingView() {
             });
 
         } catch (e) {
-            toastError(t("speaking.evalFail", { error: String(e) }));
-            setStep("idle");
+            if (isMounted.current) {
+                toastError(t("speaking.evalFail", { error: String(e) }));
+                setStep("idle");
+            }
         }
     }, [referenceText, t, toastError, recordingSecs, refMeta.material_id]);
 

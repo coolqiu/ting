@@ -92,13 +92,19 @@ pub fn get_playback_state(state: State<'_, AudioState>) -> PlaybackInfo {
 /// and returns the absolute file path for use with `transcribe_audio`.
 /// Using a unique filename per recording ensures the transcription cache is not stale.
 #[tauri::command]
-pub fn save_temp_audio(bytes: Vec<u8>) -> Result<String, String> {
+pub fn save_temp_audio(app: tauri::AppHandle, bytes: Vec<u8>) -> Result<String, String> {
+    use tauri::Manager;
     let ts = std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)
         .unwrap_or_default()
         .as_millis();
-    // Delete any previous recording files to avoid filling up temp dir
-    let temp_dir = std::env::temp_dir();
+    
+    // Use a managed folder in AppData instead of system temp
+    let app_dir = app.path().app_data_dir().map_err(|e| e.to_string())?;
+    let temp_dir = app_dir.join("temp_recordings");
+    let _ = std::fs::create_dir_all(&temp_dir);
+
+    // Delete any previous recording files to avoid filling up disk
     if let Ok(entries) = std::fs::read_dir(&temp_dir) {
         for entry in entries.flatten() {
             let name = entry.file_name();
@@ -108,14 +114,15 @@ pub fn save_temp_audio(bytes: Vec<u8>) -> Result<String, String> {
             }
         }
     }
+    
     let path = temp_dir.join(format!("ting_rec_{}.wav", ts));
     let mut file =
-        std::fs::File::create(&path).map_err(|e| format!("Failed to create temp file: {}", e))?;
+        std::fs::File::create(&path).map_err(|e| format!("Failed to create recording file: {}", e))?;
     file.write_all(&bytes)
-        .map_err(|e| format!("Failed to write temp file: {}", e))?;
-    path.to_str()
-        .map(|s| s.to_string())
-        .ok_or_else(|| "Invalid temp path".to_string())
+        .map_err(|e| format!("Failed to write recording file: {}", e))?;
+    
+    // Return a relative path that resolve_internal_path will correctly re-anchor
+    Ok(format!("temp_recordings/ting_rec_{}.wav", ts))
 }
 
 /// Saves the WAV recording to a user-specified location using a native Save dialog.

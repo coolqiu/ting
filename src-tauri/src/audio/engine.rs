@@ -99,9 +99,14 @@ impl AudioHandle {
                 path: path.to_string(),
             })
             .map_err(|e| e.to_string())?;
-        match self.resp_rx.lock().unwrap().recv().unwrap() {
-            AudioResponse::Loaded(res) => res,
-            _ => Err("Unexpected response".into()),
+
+        let timeout = std::time::Duration::from_secs(5); // Load can take longer due to duration scanning
+        let receiver_lock = self.resp_rx.lock().map_err(|_| "Audio response mutex poisoned")?;
+        match receiver_lock.recv_timeout(timeout) {
+            Ok(AudioResponse::Loaded(res)) => res,
+            Ok(_) => Err("Unexpected response type during load".into()),
+            Err(std::sync::mpsc::RecvTimeoutError::Timeout) => Err("Audio engine load timeout".into()),
+            Err(std::sync::mpsc::RecvTimeoutError::Disconnected) => Err("Audio engine thread disconnected".into()),
         }
     }
 
@@ -163,30 +168,46 @@ impl AudioHandle {
 
     pub fn get_state(&self) -> PlaybackInfo {
         let _ = self.cmd_tx.send(AudioCommand::GetState);
-        match self.resp_rx.lock().unwrap().recv() {
-            Ok(AudioResponse::State(info)) => info,
-            _ => PlaybackInfo {
-                file_path: "".into(),
-                file_name: "".into(),
-                material_id: None,
-                duration_secs: 0.0,
-                position_secs: 0.0,
-                is_playing: false,
-                volume: 1.0,
-                speed: 1.0,
-                mode: PlaybackMode::Global,
-                segments: vec![],
-                active_segment_id: None,
-                loop_remaining: None,
-            },
+        let timeout = std::time::Duration::from_millis(200);
+        
+        let receiver_lock = self.resp_rx.lock();
+        if let Ok(rx) = receiver_lock {
+            match rx.recv_timeout(timeout) {
+                Ok(AudioResponse::State(info)) => info,
+                _ => self.default_state(),
+            }
+        } else {
+            self.default_state()
+        }
+    }
+
+    fn default_state(&self) -> PlaybackInfo {
+        PlaybackInfo {
+            file_path: "".into(),
+            file_name: "".into(),
+            material_id: None,
+            duration_secs: 0.0,
+            position_secs: 0.0,
+            is_playing: false,
+            volume: 1.0,
+            speed: 1.0,
+            mode: PlaybackMode::Global,
+            segments: vec![],
+            active_segment_id: None,
+            loop_remaining: None,
         }
     }
 
     fn send_and_wait_ok(&self, cmd: AudioCommand) -> Result<(), String> {
         self.cmd_tx.send(cmd).map_err(|e| e.to_string())?;
-        match self.resp_rx.lock().unwrap().recv().unwrap() {
-            AudioResponse::Ok(res) => res,
-            _ => Err("Unexpected response".into()),
+        let timeout = std::time::Duration::from_millis(500);
+
+        let receiver_lock = self.resp_rx.lock().map_err(|_| "Audio response mutex poisoned")?;
+        match receiver_lock.recv_timeout(timeout) {
+            Ok(AudioResponse::Ok(res)) => res,
+            Ok(_) => Err("Unexpected response type".into()),
+            Err(std::sync::mpsc::RecvTimeoutError::Timeout) => Err("Audio engine response timeout".into()),
+            Err(std::sync::mpsc::RecvTimeoutError::Disconnected) => Err("Audio engine thread disconnected".into()),
         }
     }
 }
@@ -789,16 +810,22 @@ impl AudioEngine {
 
         let mut last_ts: u64 = 0;
         let mut last_tb = None;
+        let mut packet_count = 0;
+        let max_packets = 15000; // Limit scan to prevent minutes-long freezes on huge files
 
         loop {
             match reader.next_packet() {
                 Ok(packet) => {
+                    packet_count += 1;
                     if packet.track_id() == track_id && packet.dur > 0 {
                         let end_ts = packet.ts + packet.dur;
                         if end_ts > last_ts {
                             last_ts = end_ts;
                         }
                         last_tb = codec_params.time_base;
+                    }
+                    if packet_count > max_packets {
+                        break;
                     }
                 }
                 Err(symphonia::core::errors::Error::IoError(_)) | Err(symphonia::core::errors::Error::ResetRequired) => break,
