@@ -68,6 +68,12 @@ export function SpeakingView() {
 
     useEffect(() => {
         isMounted.current = true;
+
+        // Configure iOS audio session for play+record (needed for shadowing)
+        if (/iPhone|iPad|iPod/.test(navigator.userAgent)) {
+            invoke("configure_play_and_record").catch(() => {});
+        }
+
         return () => {
             isMounted.current = false;
             if (timerRef.current) clearInterval(timerRef.current);

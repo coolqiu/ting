@@ -126,6 +126,13 @@ export default function StudyWorkspaceMain() {
         }
     }, [playback?.material_id]);
 
+    // Configure iOS audio session for playback only when entering study workspace
+    useEffect(() => {
+        if (/iPhone|iPad|iPod/.test(navigator.userAgent)) {
+            invoke("configure_playback").catch(() => {});
+        }
+    }, []);
+
     // Build 107.v8: Stable polling loop at 250ms
     useEffect(() => {
         const interval = setInterval(pollState, 250);
