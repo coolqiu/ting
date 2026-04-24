@@ -86,19 +86,24 @@ jobs:
           TOOLCHAIN=/Applications/Xcode_26.3.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain
           SDK=/Applications/Xcode_26.3.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS26.2.sdk
 
-          # Xcode 26 removed these compat libs (not needed on iOS 16+ natively).
-          # Tauri Swift plugins still reference them via auto-link markers.
-          # Solution: create empty stubs so the linker can resolve the references.
-          cat > /tmp/swift_compat_stub.c << 'STUBEOF'
-          void __swift_FORCE_LOAD_$_swiftCompatibility56(void) {}
-          void __swift_FORCE_LOAD_$_swiftCompatibilityConcurrency(void) {}
-          void __swift_FORCE_LOAD_$_swiftCompatibilityPacks(void) {}
-          STUBEOF
+          # macOS C ABI: compiler prepends ONE underscore to all C symbols.
+          # We need Mach-O symbols with 2 underscores (__swift_FORCE_LOAD_$_*),
+          # so C source must have 1 underscore (_swift_FORCE_LOAD_$_*).
+          # Using printf (not heredoc) to avoid YAML indentation termination bugs.
+          printf '%s\n' 'void _swift_FORCE_LOAD_$_swiftCompatibility56(void) {}' > /tmp/swift_compat_stub.c
+          printf '%s\n' 'void _swift_FORCE_LOAD_$_swiftCompatibilityConcurrency(void) {}' >> /tmp/swift_compat_stub.c
+          printf '%s\n' 'void _swift_FORCE_LOAD_$_swiftCompatibilityPacks(void) {}' >> /tmp/swift_compat_stub.c
+
+          echo "--- Stub C source ---"
+          cat /tmp/swift_compat_stub.c
 
           $TOOLCHAIN/usr/bin/clang -target arm64-apple-ios16.0 \
             -isysroot $SDK \
             -c /tmp/swift_compat_stub.c \
             -o /tmp/swift_compat_stub.o
+
+          echo "--- Generated Mach-O symbols (should show 2 underscores) ---"
+          $TOOLCHAIN/usr/bin/nm /tmp/swift_compat_stub.o | grep swift
 
           ar crs /tmp/libswiftCompatibility56.a /tmp/swift_compat_stub.o
           ar crs /tmp/libswiftCompatibilityConcurrency.a /tmp/swift_compat_stub.o
@@ -107,7 +112,8 @@ jobs:
           sudo cp /tmp/libswiftCompatibility56.a $SDK/usr/lib/swift/
           sudo cp /tmp/libswiftCompatibilityConcurrency.a $SDK/usr/lib/swift/
           sudo cp /tmp/libswiftCompatibilityPacks.a $SDK/usr/lib/swift/
-          echo "Swift compat stubs installed to $SDK/usr/lib/swift/"
+          echo "Swift compat stubs installed:"
+          ls -la $SDK/usr/lib/swift/libswiftCompat*
 
       - name: Create Smart xcodebuild Shim
         run: |
