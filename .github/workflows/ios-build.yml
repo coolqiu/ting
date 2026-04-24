@@ -81,6 +81,34 @@ jobs:
             echo "WARNING: project.pbxproj not found at $PBXPROJ"
           fi
 
+      - name: Create Swift compat stubs for Xcode 26 (removed libswiftCompatibility56/Concurrency/Packs)
+        run: |
+          TOOLCHAIN=/Applications/Xcode_26.3.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain
+          SDK=/Applications/Xcode_26.3.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS26.2.sdk
+
+          # Xcode 26 removed these compat libs (not needed on iOS 16+ natively).
+          # Tauri Swift plugins still reference them via auto-link markers.
+          # Solution: create empty stubs so the linker can resolve the references.
+          cat > /tmp/swift_compat_stub.c << 'STUBEOF'
+          void __swift_FORCE_LOAD_$_swiftCompatibility56(void) {}
+          void __swift_FORCE_LOAD_$_swiftCompatibilityConcurrency(void) {}
+          void __swift_FORCE_LOAD_$_swiftCompatibilityPacks(void) {}
+          STUBEOF
+
+          $TOOLCHAIN/usr/bin/clang -target arm64-apple-ios16.0 \
+            -isysroot $SDK \
+            -c /tmp/swift_compat_stub.c \
+            -o /tmp/swift_compat_stub.o
+
+          ar crs /tmp/libswiftCompatibility56.a /tmp/swift_compat_stub.o
+          ar crs /tmp/libswiftCompatibilityConcurrency.a /tmp/swift_compat_stub.o
+          ar crs /tmp/libswiftCompatibilityPacks.a /tmp/swift_compat_stub.o
+
+          sudo cp /tmp/libswiftCompatibility56.a $SDK/usr/lib/swift/
+          sudo cp /tmp/libswiftCompatibilityConcurrency.a $SDK/usr/lib/swift/
+          sudo cp /tmp/libswiftCompatibilityPacks.a $SDK/usr/lib/swift/
+          echo "Swift compat stubs installed to $SDK/usr/lib/swift/"
+
       - name: Create Smart xcodebuild Shim
         run: |
           # The Smart Shim: Handles BOTH build and export-archive
