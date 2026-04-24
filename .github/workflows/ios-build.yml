@@ -69,6 +69,18 @@ jobs:
             npm run tauri ios init
           fi
 
+      - name: Patch iOS deployment target to 16.0 (Xcode 26 removed Swift compat shims for iOS<16)
+        run: |
+          PBXPROJ="src-tauri/gen/apple/ting.xcodeproj/project.pbxproj"
+          if [ -f "$PBXPROJ" ]; then
+            sed -i '' 's/IPHONEOS_DEPLOYMENT_TARGET = 14\.0/IPHONEOS_DEPLOYMENT_TARGET = 16.0/g' "$PBXPROJ"
+            sed -i '' 's/IPHONEOS_DEPLOYMENT_TARGET = 15\.0/IPHONEOS_DEPLOYMENT_TARGET = 16.0/g' "$PBXPROJ"
+            echo "Patched deployment target to 16.0"
+            grep "IPHONEOS_DEPLOYMENT_TARGET" "$PBXPROJ" | head -5
+          else
+            echo "WARNING: project.pbxproj not found at $PBXPROJ"
+          fi
+
       - name: Create Smart xcodebuild Shim
         run: |
           # The Smart Shim: Handles BOTH build and export-archive

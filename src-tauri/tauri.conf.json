@@ -45,10 +45,11 @@
     },
     "iOS": {
       "developmentTeam": "__APPLE_DEVELOP_TEAM__",
+      "minimumSystemVersion": "16.0",
       "frameworks": [
         "Accelerate"
       ],
-      "bundleVersion": "105",
+      "bundleVersion": "106",
       "infoPlist": "./Info.ios.plist"
     }
   }
