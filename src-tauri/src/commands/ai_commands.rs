@@ -23,6 +23,7 @@ pub async fn download_default_model(
 pub async fn transcribe_audio(
     app: AppHandle,
     path: String,
+    prompt: Option<String>,
     model_manager: State<'_, ModelManager>,
     store: State<'_, TranscriptStore>,
     transcription_state: State<'_, TranscriptionState>,
@@ -82,7 +83,7 @@ pub async fn transcribe_audio(
             let _ = app_handle.emit("transcribe-progress", progress);
         };
 
-        engine.transcribe(&audio_path, Some(progress_cb))
+        engine.transcribe(&audio_path, Some(progress_cb), prompt)
     })
     .await
     .map_err(|e| format!("Task failed: {}", e))??;

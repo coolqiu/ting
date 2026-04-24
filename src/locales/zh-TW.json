@@ -81,6 +81,8 @@
         "extra": "🟠 多說",
         "tryAgain": "🔄 再次練習",
         "saveRecording": "💾 保存錄音",
+        "saveSuccess": "錄音已保存",
+        "saveFail": "保存失敗: {{error}}",
         "tip": "💡 提示：先閱讀並理解參考原句，然後點擊按鈕並大聲朗讀句子。",
         "readyPrompt": "準備好了嗎？點擊按鈕開始跟讀上方的句子",
         "micError": "無法訪問麥克風: {{error}}",

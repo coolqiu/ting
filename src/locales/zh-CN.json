@@ -81,6 +81,8 @@
         "extra": "🟠 多说",
         "tryAgain": "🔄 再次练习",
         "saveRecording": "💾 保存录音",
+        "saveSuccess": "录音已保存",
+        "saveFail": "保存失败: {{error}}",
         "tip": "💡 提示：先阅读并理解参考原句，然后点击按钮并大声朗读句子，尽量保持自然的语速和发音。",
         "readyPrompt": "准备好了吗？点击按钮开始跟读上方的句子",
         "micError": "无法访问麦克风: {{error}}",

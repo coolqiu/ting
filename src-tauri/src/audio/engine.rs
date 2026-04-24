@@ -61,6 +61,7 @@ enum AudioCommand {
     RemoveSegment { id: String },
     SetActiveSegment { id: Option<String> }, // manually jump to a segment
     SetMaterialId { id: Option<i64> },
+    ReinitOutput,
     GetState,
     Shutdown,
 }
@@ -166,6 +167,10 @@ impl AudioHandle {
         self.send_and_wait_ok(AudioCommand::SetMaterialId { id })
     }
 
+    pub fn reinit_output(&self) -> Result<(), String> {
+        self.send_and_wait_ok(AudioCommand::ReinitOutput)
+    }
+
     pub fn get_state(&self) -> PlaybackInfo {
         let _ = self.cmd_tx.send(AudioCommand::GetState);
         let timeout = std::time::Duration::from_millis(200);
@@ -223,7 +228,7 @@ impl Drop for AudioHandle {
 // =============================================
 
 struct AudioEngine {
-    _stream: OutputStream,
+    _stream: Option<OutputStream>,
     stream_handle: rodio::OutputStreamHandle,
     sink: Option<Sink>,
     current_file: Option<PathBuf>,
@@ -257,7 +262,7 @@ fn audio_thread_main(cmd_rx: mpsc::Receiver<AudioCommand>, resp_tx: mpsc::Sender
     let speed_arc = Arc::new(AtomicU32::new(1.0f32.to_bits()));
 
     let mut engine = AudioEngine {
-        _stream: stream,
+        _stream: Some(stream),
         stream_handle: handle,
         sink: None,
         current_file: None,
@@ -337,6 +342,10 @@ fn audio_thread_main(cmd_rx: mpsc::Receiver<AudioCommand>, resp_tx: mpsc::Sender
                 let result = engine.set_material_id(id);
                 let _ = resp_tx.send(AudioResponse::Ok(result));
             }
+            Ok(AudioCommand::ReinitOutput) => {
+                let result = engine.reinit_output();
+                let _ = resp_tx.send(AudioResponse::Ok(result));
+            }
             Ok(AudioCommand::GetState) => {
                 let state = engine.get_state();
                 let _ = resp_tx.send(AudioResponse::State(state));
@@ -398,9 +407,29 @@ impl AudioEngine {
 
         self.stop_internal();
 
-        let sink = Sink::try_new(&self.stream_handle)
-            .map_err(|e| format!("Failed to create audio sink: {}", e))?;
+        //let sink = Sink::try_new(&self.stream_handle)
+        //   .map_err(|e| format!("Failed to create audio sink: {}", e))?;
 
+        let sink = match Sink::try_new(&self.stream_handle) {
+            Ok(s) => s,
+            Err(first_err) => {
+                eprintln!("[AudioEngine] Sink creation failed ({}), rebuilding OutputStream...", first_err);
+                // CRITICAL FOR IOS: Explicitly Drop the old stream FIRST so CoreAudio can release resources
+                self._stream = None;
+                
+                match OutputStream::try_default() {
+                    Ok((new_stream, new_handle)) => {
+                        self._stream = Some(new_stream);
+                        self.stream_handle = new_handle;
+                        Sink::try_new(&self.stream_handle)
+                            .map_err(|e| format!("Failed to create sink after rebuild: {}", e))?
+                    }
+                    Err(e) => return Err(format!("Failed to recreate audio output: {}", e)),
+                }
+            }
+        };
+
+        
         let file = File::open(&path).map_err(|e| format!("Failed to open file: {}", e))?;
         let reader = BufReader::new(file);
         let decoder = Decoder::new(reader).map_err(|e| format!("Failed to decode audio: {}", e))?;
@@ -476,6 +505,20 @@ impl AudioEngine {
         self.loop_remaining = 0;
         self.mode = PlaybackMode::Global;
         Ok(())
+    }
+
+    fn reinit_output(&mut self) -> Result<(), String> {
+        self.stop_internal();
+        self._stream = None;
+        match OutputStream::try_default() {
+            Ok((new_stream, new_handle)) => {
+                self._stream = Some(new_stream);
+                self.stream_handle = new_handle;
+                eprintln!("[AudioEngine] OutputStream rebuilt successfully");
+                Ok(())
+            }
+            Err(e) => Err(format!("Failed to rebuild audio output: {}", e)),
+        }
     }
 
     fn stop_internal(&mut self) {

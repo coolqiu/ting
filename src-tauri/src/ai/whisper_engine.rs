@@ -1,5 +1,5 @@
 use crate::db::transcript_store::WordTimestamp;
-use rodio::{source::UniformSourceIterator, Decoder, Source};
+use rodio::{Decoder, Source};
 use std::fs::File;
 use std::io::BufReader;
 use std::path::Path;
@@ -25,6 +25,7 @@ impl WhisperEngine {
         &self,
         audio_path: &Path,
         progress_cb: Option<F>,
+        prompt: Option<String>,
     ) -> Result<Vec<WordTimestamp>, String>
     where
         F: FnMut(i32) + 'static,
@@ -55,12 +56,26 @@ impl WhisperEngine {
         params.set_token_timestamps(true);
         params.set_suppress_blank(true);
         params.set_suppress_nst(true);
-        params.set_no_context(true); // Disable context feedback to break hallucination loops
+        // Keep context between 30-second segments so Whisper remembers what it already said,
+        // preventing repetition loops on recordings longer than 30s.
+        params.set_no_context(false);
 
-        // Aggressive thresholds to skip long segments of music/noise
-        // Lowered no_speech_thold to 0.45 (default 0.6) so it skips more readily when music plays
-        params.set_no_speech_thold(0.45);
-        params.set_entropy_thold(2.4);
+        #[cfg(target_os = "ios")]
+        params.set_no_speech_thold(0.15); // Balanced "door" for iOS with silence padding
+
+        #[cfg(target_os = "android")]
+        params.set_no_speech_thold(0.1);  // Balanced sensitivity for Android
+
+        #[cfg(not(any(target_os = "ios", target_os = "android")))]
+        params.set_no_speech_thold(0.2);  // Conservative for Desktop noise environment
+
+        params.set_entropy_thold(2.4); // Lower threshold to be more lenient with initial words
+
+        if let Some(p) = prompt.as_deref() {
+            // Passing the reference text to Whisper strongly biases the language model
+            // towards the expected vocabulary, eliminating homophone errors and name misspellings!
+            params.set_initial_prompt(p);
+        }
 
         if let Some(cb) = progress_cb {
             params.set_progress_callback_safe(cb);
@@ -153,8 +168,49 @@ impl WhisperEngine {
             }
         }
 
-        Ok(all_words)
+        // --- Post-Processing: Deduplicate repeated segments ---
+        // Whisper can sometimes repeat a block of text. We detect this by checking
+        // if a later substring of words exactly matches an earlier one.
+        let deduped = deduplicate_words(all_words);
+
+        Ok(deduped)
     }
+}
+
+/// Removes repeated blocks of words from the transcription output.
+/// Whisper may produce "A B C D E . A B C D E" when processing segments near boundaries.
+/// This function detects when the second half is a repeat of an earlier block and trims it.
+fn deduplicate_words(words: Vec<WordTimestamp>) -> Vec<WordTimestamp> {
+    if words.len() < 6 {
+        return words;
+    }
+
+    // Try different split points: check if the words from position `split` onward
+    // are a repeat of words starting from some earlier position.
+    let word_texts: Vec<&str> = words.iter().map(|w| w.word.as_str()).collect();
+    let n = word_texts.len();
+
+    // We look for a repeated suffix: the last K words match a block of K words earlier.
+    // Try block sizes from n/2 down to 3 words.
+    let max_block = n / 2;
+    for block_size in (3..=max_block).rev() {
+        let suffix_start = n - block_size;
+        
+        // Search for this suffix block earlier in the text
+        'outer: for start in 0..=(n - 2 * block_size) {
+            // Check if words[start..start+block_size] matches words[suffix_start..suffix_start+block_size]
+            for k in 0..block_size {
+                if word_texts[start + k].to_lowercase() != word_texts[suffix_start + k].to_lowercase() {
+                    continue 'outer;
+                }
+            }
+            // Found a match! Trim the repeated suffix.
+            println!("[Whisper] Trimming {} repeated words (block at {} duplicated at {})", block_size, start, suffix_start);
+            return words[..suffix_start].to_vec();
+        }
+    }
+
+    words
 }
 
 fn extract_16k_mono_pcm(path: &Path) -> Result<Vec<f32>, String> {
@@ -162,13 +218,88 @@ fn extract_16k_mono_pcm(path: &Path) -> Result<Vec<f32>, String> {
     let source =
         Decoder::new(BufReader::new(file)).map_err(|e| format!("Failed to decode: {}", e))?;
 
-    // We need 1 channel (mono) and 16000Hz samplerate for Whisper
+    let channels = source.channels() as usize;
+    let sample_rate = source.sample_rate();
+
     let f32_source = source.convert_samples::<f32>();
-    let resampled = UniformSourceIterator::new(f32_source, 1, 16000);
-    let mono_samples: Vec<f32> = resampled.collect();
+
+    // 1. Read all samples to memory
+    let all_samples: Vec<f32> = f32_source.collect();
+    if all_samples.is_empty() {
+        return Err("No audio samples found".into());
+    }
+
+    // 2. Identify the primary voice channel by highest energy
+    // This entirely avoids the dreaded "Phase Cancellation" issue when mixing Stereo to Mono
+    // which previously destroyed the voice waveform and caused Whisper to hallucinate context.
+    let mut channel_energies = vec![0.0_f32; channels];
+    for (i, &sample) in all_samples.iter().enumerate() {
+        channel_energies[i % channels] += sample.abs();
+    }
+
+    let mut best_channel = 0;
+    let mut max_energy = -1.0;
+    for (i, &energy) in channel_energies.iter().enumerate() {
+        if energy > max_energy {
+            max_energy = energy;
+            best_channel = i;
+        }
+    }
+
+    // 3. Extract only the best channel
+    let best_channel_samples: Vec<f32> = all_samples
+        .iter()
+        .enumerate()
+        .filter_map(|(i, &s)| if i % channels == best_channel { Some(s) } else { None })
+        .collect();
+
+    // 4. Boxcar Anti-Aliasing Decimation (48kHz -> 16kHz)
+    // This applies a low-pass moving average filter, far superior to rodio's nearest-neighbor
+    let mut mono_samples: Vec<f32> = Vec::new();
+    let target_rate = 16000.0;
+    let ratio = sample_rate as f32 / target_rate;
+
+    let mut resample_sum = 0.0_f32;
+    let mut resample_count = 0.0_f32;
+    let mut current_idx = 0.0_f32;
+
+    for sample in best_channel_samples {
+        resample_sum += sample;
+        resample_count += 1.0;
+        current_idx += 1.0;
+
+        if current_idx >= ratio {
+            let avg = if resample_count > 0.0 {
+                resample_sum / resample_count
+            } else {
+                0.0
+            };
+            mono_samples.push(avg);
+            
+            resample_sum = 0.0;
+            resample_count = 0.0;
+            current_idx -= ratio;
+        }
+    }
 
     if mono_samples.is_empty() {
-        return Err("No audio samples found".into());
+        return Err("No audio samples produced after resampling".into());
+    }
+
+    // 5. Peak Normalization
+    // Ensure the AI gets a consistent volume level by scaling the peak to 0.9.
+    // This dramatically improves recognition on iPhone where initial mic gain may be low.
+    let mut max_abs = 0.0_f32;
+    for &sample in &mono_samples {
+        let abs = sample.abs();
+        if abs > max_abs { max_abs = abs; }
+    }
+
+    if max_abs > 0.001 {
+        let scale = 0.9 / max_abs;
+        for sample in &mut mono_samples {
+            *sample *= scale;
+        }
     }
 
     Ok(mono_samples)

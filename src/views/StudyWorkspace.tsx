@@ -58,6 +58,9 @@ export default function StudyWorkspace() {
     const [currentMaterial, setCurrentMaterial] = useState<LearningMaterial | null>(null);
     const [tempA, setTempA] = useState<number | null>(null);
 
+    // Platform detection for UI adjustments
+    const isIOS = useMemo(() => /iPad|iPhone|iPod/.test(navigator.userAgent), []);
+
 
 
     // Right sidebar tab state
@@ -1411,7 +1414,7 @@ export default function StudyWorkspace() {
                                             {t("workspace_v2.segment_count", { count: playback.segments.length })}
                                         </span>
                                     </div>
-                                    <div className="ab-sidebar-content" style={{ padding: "16px 20px", paddingBottom: "calc(env(safe-area-inset-bottom, 24px) + 80px)" }}>
+                                    <div className="ab-sidebar-content" style={{ padding: "16px 20px", paddingBottom: isIOS ? "calc(env(safe-area-inset-bottom, 24px) + 80px)" : "calc(env(safe-area-inset-bottom, 24px) + 16px)" }}>
                                         {playback.segments.map((seg, idx) => {
                                             const isActive = seg.id === playback.active_segment_id;
                                             return (
@@ -1585,7 +1588,7 @@ export default function StudyWorkspace() {
                                         justifyContent: (!modelExists || isTranscribing || words.length === 0) ? "center" : "flex-start",
                                         height: "100%",
                                         position: "relative",
-                                        paddingBottom: "calc(env(safe-area-inset-bottom, 24px) + 80px)"
+                                        paddingBottom: /iPad|iPhone|iPod/.test(navigator.userAgent) ? "calc(env(safe-area-inset-bottom, 24px) + 80px)" : "24px"
                                     }}
                                 >
                                     {!modelExists ? (

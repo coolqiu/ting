@@ -1,4 +1,4 @@
-{
+﻿{
     "nav": {
         "library": "Bibliothèque",
         "workspace": "Étude",
@@ -81,6 +81,8 @@
         "extra": "🟠 Extra",
         "tryAgain": "🔄 Réessayer",
         "saveRecording": "💾 Sauvegarder",
+        "saveSuccess": "Enregistrement sauvegardé",
+        "saveFail": "Échec de la sauvegarde: {{error}}",
         "tip": "💡 Astuce: Comprenez la phrase puis lisez-la naturellement.",
         "readyPrompt": "Prêt? Cliquez et lisez la phrase.",
         "micError": "Erreur micro: {{error}}",

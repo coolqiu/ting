@@ -81,6 +81,8 @@
         "extra": "🟠 Extra",
         "tryAgain": "🔄 Try Again",
         "saveRecording": "💾 Save Recording",
+        "saveSuccess": "Recording saved successfully",
+        "saveFail": "Save failed: {{error}}",
         "tip": "💡 Tip: Read and understand the reference sentence, then click the button to read it aloud at a natural pace.",
         "readyPrompt": "Ready? Click to start reading the sentence above.",
         "micError": "Cannot access microphone: {{error}}",

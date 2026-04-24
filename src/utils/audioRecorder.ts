@@ -1,20 +1,44 @@
+import { invoke } from "@tauri-apps/api/core";
+
 /**
- * AudioRecorder — Tauri WebView2 Compatible
+ * AudioRecorder — Native Rust Proxy
  *
- * Uses ScriptProcessorNode (no module loading, works in all WebViews) instead of
- * AudioWorklet (whose Blob URL is CSP-blocked in Tauri WebView2 on Windows).
- *
- * Strategy:
- *  1. Open AudioContext at the browser's native rate (usually 44100 / 48000 Hz)
- *  2. Capture raw Float32 PCM via ScriptProcessorNode into a buffer
- *  3. After stopping, downsample the buffer to 16000 Hz (required by Whisper)
- *  4. Encode as a standard RIFF WAV Blob
+ * This version uses Tauri to invoke our native `cpal`/`hound` audio engine in Rust.
+ * This completely prevents iOS CoreAudio AVAudioSession deadlocks since WebKit never touches the hardware.
  */
+export class AudioRecorder {
+    private isRecording = false;
+
+    async start(): Promise<void> {
+        if (this.isRecording) return;
+        this.isRecording = true;
+        await invoke("start_native_recording");
+    }
+
+    /**
+     * Stops the native recording.
+     * @returns The raw file path of the saved `.wav` file on disk.
+     */
+    async stop(): Promise<string> {
+        if (!this.isRecording) throw new Error('Not recording');
+        this.isRecording = false;
+        const path = await invoke<string>("stop_native_recording");
+        return path;
+    }
+
+    get recording() {
+        return this.isRecording;
+    }
+}
+
+/* =====================================================================
+   LEGACY WEBAUDIO IMPLEMENTATION (COMMENTED OUT FOR SAFETY/REFERENCE)
+   =====================================================================
 
 const TARGET_SAMPLE_RATE = 16000;
 const BUFFER_SIZE = 4096; // ScriptProcessorNode render quantum
 
-export class AudioRecorder {
+export class LegacyAudioRecorder {
     private audioContext: AudioContext | null = null;
     private mediaStream: MediaStream | null = null;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -56,7 +80,7 @@ export class AudioRecorder {
         this.isRecording = true;
     }
 
-    stop(): Blob {
+    async stop(): Promise<Blob> {
         if (!this.isRecording) throw new Error('Not recording');
 
         this.isRecording = false;
@@ -65,8 +89,10 @@ export class AudioRecorder {
         this.mediaStream?.getTracks().forEach(t => t.stop());
 
         // Disconnect nodes
-        try { this.sourceNode?.disconnect(); } catch (_) { /* ignore */ }
-        try { this.scriptNode?.disconnect(); } catch (_) { /* ignore */ }
+        try { this.sourceNode?.disconnect(); } catch (_) { // ignore 
+        }
+        try { this.scriptNode?.disconnect(); } catch (_) { // ignore 
+        }
 
         // Flatten all chunks
         const totalLength = this.recordedChunks.reduce((acc, c) => acc + c.length, 0);
@@ -82,8 +108,11 @@ export class AudioRecorder {
 
         const wavBlob = encodeWAV(resampled, TARGET_SAMPLE_RATE);
 
-        // Clean up
-        this.audioContext?.close();
+        // Clean up — await close() so iOS audio session is fully released
+        if (this.audioContext) {
+            try { await this.audioContext.close(); } catch (_) { // ignore 
+            }
+        }
         this.audioContext = null;
         this.mediaStream = null;
         this.scriptNode = null;
@@ -99,22 +128,11 @@ export class AudioRecorder {
 }
 
 // ---- Downsampling ----
-
-/**
- * Linear interpolation downsampler.
- * Takes Float32 PCM at `fromRate` Hz and returns Float32 PCM at `toRate` Hz.
- */
-function downsampleBuffer(
-    buffer: Float32Array,
-    fromRate: number,
-    toRate: number
-): Float32Array {
+function downsampleBuffer(buffer: Float32Array, fromRate: number, toRate: number): Float32Array {
     if (fromRate === toRate) return buffer;
-
     const ratio = fromRate / toRate;
     const newLength = Math.round(buffer.length / ratio);
     const result = new Float32Array(newLength);
-
     for (let i = 0; i < newLength; i++) {
         const srcIdx = i * ratio;
         const lower = Math.floor(srcIdx);
@@ -122,12 +140,10 @@ function downsampleBuffer(
         const frac = srcIdx - lower;
         result[i] = buffer[lower] * (1 - frac) + buffer[upper] * frac;
     }
-
     return result;
 }
 
 // ---- WAV Encoding ----
-
 function encodeWAV(samples: Float32Array, sampleRate: number): Blob {
     const numChannels = 1;
     const bitsPerSample = 16;
@@ -142,7 +158,7 @@ function encodeWAV(samples: Float32Array, sampleRate: number): Blob {
     writeString(view, 8, 'WAVE');
     writeString(view, 12, 'fmt ');
     view.setUint32(16, 16, true);
-    view.setUint16(20, 1, true);           // PCM
+    view.setUint16(20, 1, true);
     view.setUint16(22, numChannels, true);
     view.setUint32(24, sampleRate, true);
     view.setUint32(28, byteRate, true);
@@ -151,14 +167,12 @@ function encodeWAV(samples: Float32Array, sampleRate: number): Blob {
     writeString(view, 36, 'data');
     view.setUint32(40, dataSize, true);
 
-    // Float32 [-1, 1] → Int16
     let idx = 44;
     for (let i = 0; i < samples.length; i++) {
         const s = Math.max(-1, Math.min(1, samples[i]));
         view.setInt16(idx, s < 0 ? s * 0x8000 : s * 0x7fff, true);
         idx += 2;
     }
-
     return new Blob([buffer], { type: 'audio/wav' });
 }
 
@@ -167,3 +181,5 @@ function writeString(view: DataView, offset: number, str: string) {
         view.setUint8(offset + i, str.charCodeAt(i));
     }
 }
+
+===================================================================== */

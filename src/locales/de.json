@@ -1,4 +1,4 @@
-{
+﻿{
     "nav": {
         "library": "Bibliothek",
         "workspace": "Lernen",
@@ -81,6 +81,8 @@
         "extra": "🟠 Extra",
         "tryAgain": "🔄 Noch einmal",
         "saveRecording": "💾 Speichern",
+        "saveSuccess": "Aufnahme gespeichert",
+        "saveFail": "Speichern fehlgeschlagen: {{error}}",
         "tip": "💡 Tipp: Verstehen Sie den Satz und lesen Sie ihn natürlich ab.",
         "readyPrompt": "Bereit? Klicken und vorlesen.",
         "micError": "Mikrofon-Fehler: {{error}}",

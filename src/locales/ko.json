@@ -1,4 +1,4 @@
-{
+﻿{
     "nav": {
         "library": "라이브러리",
         "workspace": "학습",
@@ -81,6 +81,8 @@
         "extra": "🟠 অতিরিক্ত",
         "tryAgain": "🔄 다시 시작",
         "saveRecording": "💾 저장",
+        "saveSuccess": "녹음이 저장되었습니다",
+        "saveFail": "저장 실패: {{error}}",
         "tip": "💡 팁: 문장을 이해한 후 자연스러운 속도로 소리내어 읽으세요.",
         "readyPrompt": "준비되셨나요? 버튼을 클릭하고 문장을 읽으세요",
         "micError": "마이크 오류: {{error}}",

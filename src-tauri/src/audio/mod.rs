@@ -1,4 +1,5 @@
 pub mod engine;
+pub mod recorder;
 pub mod sonic;
 
 pub use engine::{AudioHandle, PlaybackMode, PlaybackInfo, ABSegment};

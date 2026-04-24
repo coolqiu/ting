@@ -1,4 +1,4 @@
-{
+﻿{
     "nav": {
         "library": "ライブラリ",
         "workspace": "学習",
@@ -81,6 +81,8 @@
         "extra": "🟠 余分",
         "tryAgain": "🔄 もう一度",
         "saveRecording": "💾 保存",
+        "saveSuccess": "録音を保存しました",
+        "saveFail": "保存失敗: {{error}}",
         "tip": "💡 ヒント: 例文を理解してからボタンをクリックし、自然な速度で音読してください。",
         "readyPrompt": "準備はいいですか？ボタンをクリックして上の文を読んでください",
         "micError": "マイクにアクセスできません: {{error}}",

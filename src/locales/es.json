@@ -1,4 +1,4 @@
-{
+﻿{
     "nav": {
         "library": "Biblioteca",
         "workspace": "Estudio",
@@ -81,6 +81,8 @@
         "extra": "🟠 Extra",
         "tryAgain": "🔄 Reintentar",
         "saveRecording": "💾 Guardar",
+        "saveSuccess": "Grabación guardada",
+        "saveFail": "Error al guardar: {{error}}",
         "tip": "💡 Consejo: Entiende la frase y léela en voz alta con naturalidad.",
         "readyPrompt": "¿Listo? Haz clic y lee.",
         "micError": "Error de micrófono: {{error}}",

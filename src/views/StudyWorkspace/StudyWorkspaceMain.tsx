@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect, useMemo, useRef } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { open } from "@tauri-apps/plugin-dialog";
+//import { useNavigate, useLocation } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { RotateCcw, X, Loader2, Play, Pause, Volume2 } from "lucide-react";
@@ -36,6 +37,7 @@ export default function StudyWorkspaceMain() {
     const { t } = useTranslation();
     const { success: toastSuccess, error: toastError } = useToast();
     const navigate = useNavigate();
+    // const location = useLocation();
 
     // Core States
     const [playback, setPlayback] = useState<PlaybackInfo | null>(null);
@@ -126,10 +128,12 @@ export default function StudyWorkspaceMain() {
         }
     }, [playback?.material_id]);
 
-    // Configure iOS audio session for playback only when entering study workspace
+    // On iOS, re-activate audio session when entering study workspace
+    // Only re-activate session (non-blocking), do NOT call reinit_audio_output
+    // because OutputStream::try_default() can block CoreAudio if session is unstable
     useEffect(() => {
         if (/iPhone|iPad|iPod/.test(navigator.userAgent)) {
-            invoke("configure_playback").catch(() => {});
+            invoke("configure_play_and_record").catch(() => {});
         }
     }, []);
 

@@ -53,54 +53,7 @@ pub unsafe extern "C" fn __isoc23_strtoull(nptr: *const c_char, endptr: *mut *mu
 
 pub struct TranscriptionState {
 
-
     pub lock: AsyncMutex<()>,
-}
-
-#[cfg(target_os = "ios")]
-#[tauri::command]
-pub fn configure_play_and_record() -> Result<(), String> {
-    use objc::{msg_send, sel, sel_impl, class};
-    unsafe {
-        let session: *mut objc::runtime::Object = msg_send![class!(AVAudioSession), sharedInstance];
-        if session.is_null() {
-            return Ok(());
-        }
-        let str_class = class!(NSString);
-        let category_str = "AVAudioSessionCategoryPlayAndRecord\0";
-        let category: *mut objc::runtime::Object = msg_send![str_class, stringWithUTF8String: category_str.as_ptr()];
-
-        if !category.is_null() {
-            // Options: 1 (Mix) | 4 (BT) | 8 (Speaker) | 32 (BT A2DP) = 45 -> 0x2D
-            let options: usize = 0x2D;
-            let _: () = msg_send![session, setCategory:category withOptions:options error:0];
-            let _: () = msg_send![session, setActive:1 error:0];
-        }
-        Ok(())
-    }
-}
-
-#[cfg(target_os = "ios")]
-#[tauri::command]
-pub fn configure_playback() -> Result<(), String> {
-    use objc::{msg_send, sel, sel_impl, class};
-    unsafe {
-        let session: *mut objc::runtime::Object = msg_send![class!(AVAudioSession), sharedInstance];
-        if session.is_null() {
-            return Ok(());
-        }
-        let str_class = class!(NSString);
-        let category_str = "AVAudioSessionCategoryPlayback\0";
-        let category: *mut objc::runtime::Object = msg_send![str_class, stringWithUTF8String: category_str.as_ptr()];
-
-        if !category.is_null() {
-            // Options: 1 (Mix) | 8 (DefaultToSpeaker) = 9 -> 0x9
-            let options: usize = 0x9;
-            let _: () = msg_send![session, setCategory:category withOptions:options error:0];
-            let _: () = msg_send![session, setActive:1 error:0];
-        }
-        Ok(())
-    }
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -210,6 +163,7 @@ pub fn run() {
             Ok(())
         })
         .manage(audio::AudioState::default())
+        .manage(audio::recorder::AudioRecorderState::new())
         .invoke_handler(tauri::generate_handler![
             // Audio
             audio_commands::load_audio,
@@ -232,6 +186,8 @@ pub fn run() {
             audio_commands::save_recording_as,
             audio_commands::archive_recording,
             audio_commands::restart_segment,
+            audio_commands::start_native_recording,
+            audio_commands::stop_native_recording,
             // AI
             ai_commands::check_model_exists,
             ai_commands::download_default_model,
@@ -281,10 +237,9 @@ pub fn run() {
             settings_commands::clear_temp_cache,
             settings_commands::export_user_data,
             file_commands::copy_file_with_progress,
-            #[cfg(target_os = "ios")]
-            configure_play_and_record,
-            #[cfg(target_os = "ios")]
-            configure_playback,
+            audio_commands::configure_play_and_record,
+            audio_commands::configure_playback,
+            audio_commands::reinit_audio_output,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

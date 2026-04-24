@@ -2,10 +2,12 @@ import { TranscriptSelectionContext } from "../types";
 
 export class DesktopSelectionStrategy {
     private selectTimeout: number | null = null;
+    private isMouseDown: boolean = false;
 
     constructor(private context: TranscriptSelectionContext) {}
 
     public onMount() {
+        document.addEventListener("mousedown", this.handleMouseDown);
         document.addEventListener("selectionchange", this.handleSelectionChange);
         document.addEventListener("mouseup", this.handleLift, { passive: false });
         document.addEventListener("touchend", this.handleLift, { passive: false });
@@ -13,6 +15,7 @@ export class DesktopSelectionStrategy {
     }
 
     public onUnmount() {
+        document.removeEventListener("mousedown", this.handleMouseDown);
         document.removeEventListener("selectionchange", this.handleSelectionChange);
         document.removeEventListener("mouseup", this.handleLift);
         document.removeEventListener("touchend", this.handleLift);
@@ -20,43 +23,64 @@ export class DesktopSelectionStrategy {
         if (this.selectTimeout) window.clearTimeout(this.selectTimeout);
     }
 
-    private handleSelectionChange = () => {
-        if (this.selectTimeout) window.clearTimeout(this.selectTimeout);
+    private handleMouseDown = (e: MouseEvent) => {
+        if (e.target && (e.target as HTMLElement).closest('.selection-popup')) return;
+        this.isMouseDown = true;
 
-        const sel = window.getSelection();
-        if (!sel || sel.isCollapsed) {
-            this.context.setSelectionPopup(null);
-            return;
+        const target = e.target as HTMLElement;
+        if (!target.closest('.transcript-text') && !target.closest('.transcript-word')) {
+            // User explicitly clicked away onto empty space. Force kill the browser selection!
+            window.getSelection()?.removeAllRanges();
         }
 
-        this.selectTimeout = window.setTimeout(() => {
-            const sel = window.getSelection();
-            if (sel && !sel.isCollapsed) {
-                this.context.setIsSelecting(true);
-            }
-        }, 150);
+        // Destroy the popup immediately on fresh click to prevent ghosting
+        this.context.setSelectionPopup(null);
+        this.context.setIsSelecting(false);
+        if (this.selectTimeout) window.clearTimeout(this.selectTimeout);
     };
 
     private handleLift = (e?: any) => {
-        this.context.setIsSelecting(false);
-
+        this.isMouseDown = false;
         if (e?.target && (e.target as HTMLElement).closest('.selection-popup')) return;
 
-        const sel = window.getSelection();
-        if (!sel || sel.isCollapsed || sel.rangeCount === 0) return;
-
-        const range = sel.getRangeAt(0);
-        const startNode = range.startContainer;
-        const startEl = startNode.nodeType === 3 ? startNode.parentElement : startNode as HTMLElement;
-        if (!startEl?.closest('.transcript-text') && !startEl?.closest('.transcript-word')) return;
-
-        // On desktop we prevent default behavior
-        if (e && e.cancelable) {
-            e.preventDefault();
-            e.stopPropagation();
+        // Prevent native behaviors if necessary
+        if (e && e.cancelable && e.type !== "touchend") {
+            // e.preventDefault(); // Don't prevent default on lift, it breaks standard clicks
         }
 
-        this.syncSelection(range);
+        this.debounceSelection();
+    };
+
+    private handleSelectionChange = () => {
+        // Only hide popup (enter selecting mode) if actively dragging with mouse
+        if (this.isMouseDown) {
+            this.context.setIsSelecting(true);
+        }
+        this.debounceSelection();
+    };
+
+    private debounceSelection = () => {
+        if (this.selectTimeout) window.clearTimeout(this.selectTimeout);
+
+        this.selectTimeout = window.setTimeout(() => {
+            const sel = window.getSelection();
+            if (!sel || sel.isCollapsed || sel.rangeCount === 0) {
+                // Ensure selecting spinner is off if selection vanishes
+                if (!this.isMouseDown) {
+                    this.context.setIsSelecting(false);
+                }
+                return;
+            }
+
+            const range = sel.getRangeAt(0);
+            const startNode = range.startContainer;
+            const startEl = startNode.nodeType === 3 ? startNode.parentElement : startNode as HTMLElement;
+            
+            if (!startEl?.closest('.transcript-text') && !startEl?.closest('.transcript-word')) return;
+
+            this.syncSelection(range);
+            this.context.setIsSelecting(false);
+        }, 300);
     };
 
     private preventContextMenu = (e: Event) => {
@@ -71,10 +95,13 @@ export class DesktopSelectionStrategy {
         const rect = range.getBoundingClientRect();
         if (rect.width === 0 || rect.height === 0) return;
 
-        const closestStart = (range.startContainer.parentElement?.closest('.transcript-word') ||
-            (range.startContainer as HTMLElement).closest('.transcript-word')) as HTMLElement;
-        const closestEnd = (range.endContainer.parentElement?.closest('.transcript-word') ||
-            (range.endContainer as HTMLElement).closest('.transcript-word')) as HTMLElement;
+        const startNode = range.startContainer;
+        const startEl = startNode.nodeType === 3 ? startNode.parentElement : startNode as HTMLElement;
+        const endNode = range.endContainer;
+        const endEl = endNode.nodeType === 3 ? endNode.parentElement : endNode as HTMLElement;
+
+        const closestStart = startEl?.closest('.transcript-word') as HTMLElement | null;
+        const closestEnd = endEl?.closest('.transcript-word') as HTMLElement | null;
 
         if (closestStart && closestEnd) {
             const sIdx = parseInt(closestStart.dataset.index || "0", 10);

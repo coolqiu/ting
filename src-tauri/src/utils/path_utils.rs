@@ -75,7 +75,10 @@ pub fn resolve_internal_path(app: &AppHandle, raw_path: &str) -> String {
             } else if marker == "Documents" {
                 app.path().document_dir().ok()
             } else {
-                app.path().app_data_dir().ok()
+                #[cfg(mobile)]
+                { app.path().app_local_data_dir().ok() }
+                #[cfg(not(mobile))]
+                { app.path().app_data_dir().ok() }
             };
 
             if let Some(mut final_path) = target_base {

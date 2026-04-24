@@ -1,6 +1,5 @@
 import React from "react";
 import SelectionPopupIos from "./SelectionPopup.ios";
-import SelectionPopupAndroid from "./SelectionPopup.android";
 import SelectionPopupDesktop from "./SelectionPopup.desktop";
 
 interface SelectionPopupProps {
@@ -23,15 +22,11 @@ interface SelectionPopupProps {
 export default function SelectionPopup(props: SelectionPopupProps) {
     const ua = navigator.userAgent;
     const isIos = /iPad|iPhone|iPod/.test(ua);
-    const isAndroid = /Android/i.test(ua);
 
     if (isIos) {
         return <SelectionPopupIos {...props} />;
     }
 
-    if (isAndroid) {
-        return <SelectionPopupAndroid {...props} />;
-    }
-
+    // Unify Android and Windows/Desktop to use the same inline floating popup.
     return <SelectionPopupDesktop {...props} />;
 }

@@ -3,7 +3,9 @@
   "version": "1.0.2",
   "identifier": "org.ting.app",
   "build": {
+    "beforeDevCommand": "npm run dev",
     "beforeBuildCommand": "npm run build",
+    "devUrl": "http://localhost:1420",
     "frontendDist": "../dist"
   },
   "app": {
@@ -11,12 +13,19 @@
     "windows": [
       {
         "title": "ting",
-        "width": 800,
-        "height": 600
+        "width": 1200,
+        "height": 800,
+        "maximized": true
       }
     ],
     "security": {
-      "csp": null
+      "csp": null,
+      "assetProtocol": {
+        "enable": true,
+        "scope": [
+          "**"
+        ]
+      }
     }
   },
   "bundle": {
@@ -39,7 +48,7 @@
       "frameworks": [
         "Accelerate"
       ],
-      "bundleVersion": "82",
+      "bundleVersion": "105",
       "infoPlist": "./Info.ios.plist"
     }
   }

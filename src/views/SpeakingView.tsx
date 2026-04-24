@@ -1,5 +1,6 @@
+import { readFile } from "@tauri-apps/plugin-fs";
 import { useState, useRef, useCallback, useEffect } from "react";
-import { invoke } from "@tauri-apps/api/core";
+import { invoke, convertFileSrc } from "@tauri-apps/api/core";
 import { useTranslation } from "react-i18next";
 import { useToast } from "../components/Toast";
 import { diffWords } from "diff";
@@ -58,7 +59,7 @@ export function SpeakingView() {
     const [diffTokens, setDiffTokens] = useState<DiffToken[]>([]);
     const [score, setScore] = useState<number | null>(null);
     const [audioUrl, setAudioUrl] = useState<string | null>(null);
-    const [wavBytes, setWavBytes] = useState<number[] | null>(null);
+    const nativeAudioPathRef = useRef<string | null>(null);
     const [transcribedText, setTranscribedText] = useState<string>("");
     const recorderRef = useRef<AudioRecorder | null>(null);
     const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -66,12 +67,19 @@ export function SpeakingView() {
     const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
     const isMounted = useRef(true);
 
+    const studyStateRef = useRef<any>(null);
+
     useEffect(() => {
         isMounted.current = true;
+        
+        // Save the background StudyWorkspace playback state before we touch the Rust engine!
+        invoke<any>("get_playback_state").then(state => {
+            if (state) studyStateRef.current = state;
+        }).catch(() => {});
 
         // Configure iOS audio session for play+record (needed for shadowing)
         if (/iPhone|iPad|iPod/.test(navigator.userAgent)) {
-            invoke("configure_play_and_record").catch(() => {});
+            invoke("configure_play_and_record").catch(() => { });
         }
 
         return () => {
@@ -81,8 +89,22 @@ export function SpeakingView() {
                 recorderRef.current.stop();
                 recorderRef.current = null;
             }
-            // Non-blocking cleanup: Unload audio to free resources
-            invoke("unload_audio").catch(() => {});
+            
+            // Restore StudyWorkspace playback state exactly as we found it!
+            invoke("pause").then(() => {
+                const bg = studyStateRef.current;
+                if (bg) {
+                    invoke("set_mode", { mode: bg.mode }).catch(() => {});
+                    if (bg.active_segment_id) {
+                        invoke("set_active_segment", { id: bg.active_segment_id }).catch(() => {});
+                    } else {
+                        invoke("set_active_segment", { id: null }).catch(() => {});
+                    }
+                    if (bg.position_secs !== undefined) {
+                        invoke("seek", { positionSecs: bg.position_secs }).catch(() => {});
+                    }
+                }
+            }).catch(() => {});
         };
     }, []);
 
@@ -91,26 +113,32 @@ export function SpeakingView() {
         if (!refMeta.audio_path) return;
         setIsPlayingRef(true);
         try {
-            await invoke("load_audio", { path: refMeta.audio_path });
+            // We use the Rust engine as requested, BUT without calling load_audio!
+            // We just borrow the existing player loaded by StudyWorkspace.
+            
+            // Temporarily set mode to Global so it doesn't loop forever
+            await invoke("set_mode", { mode: "Global" });
+
             if (refMeta.start_ms !== null) {
+                // AudioEngine seek also implicitly resumes if it was playing, but let's be explicit
                 await invoke("seek", { positionSecs: refMeta.start_ms / 1000 });
-            } else {
-                await invoke("play");
             }
 
-            return new Promise<void>((resolve) => {
-                const duration = (refMeta.end_ms !== null && refMeta.start_ms !== null)
-                    ? (refMeta.end_ms - refMeta.start_ms)
-                    : 3000;
+            const dur = (refMeta.end_ms !== null && refMeta.start_ms !== null)
+                ? (refMeta.end_ms - refMeta.start_ms)
+                : 3000;
 
+            await invoke("resume"); // Using resume prevents reopening the file from 0.0s!
+
+            return new Promise<void>((resolve) => {
                 setTimeout(async () => {
-                    await invoke("pause").catch(() => { });
+                    await invoke("pause");
                     setIsPlayingRef(false);
                     resolve();
-                }, duration + 300);
+                }, dur + 300);
             });
         } catch (e) {
-            console.error("Failed to play reference:", e);
+            console.error("Failed to play reference natively:", e);
             setIsPlayingRef(false);
         }
     };
@@ -121,6 +149,15 @@ export function SpeakingView() {
             startRecording();
         }, 400);
     };
+
+    useEffect(() => {
+        // Clean up the object URL when audioUrl changes to avoid memory leaks
+        return () => {
+            if (audioUrl && audioUrl.startsWith("blob:")) {
+                URL.revokeObjectURL(audioUrl);
+            }
+        };
+    }, [audioUrl]);
 
     useEffect(() => {
         const fetchInitial = async () => {
@@ -140,7 +177,6 @@ export function SpeakingView() {
             }
         };
         fetchInitial();
-        invoke("pause").catch(() => { });
     }, []);
 
     const startRecording = useCallback(async () => {
@@ -160,20 +196,33 @@ export function SpeakingView() {
         if (!recorderRef.current) return;
         if (timerRef.current) clearInterval(timerRef.current);
 
-        const blob = recorderRef.current.stop();
+        const tempPath = await recorderRef.current.stop();
         recorderRef.current = null;
 
-        const url = URL.createObjectURL(blob);
-        setAudioUrl(url);
+        // Since tempPath is a native OS path, we read it as a blob to bypass Android's Range request issues
+        try {
+            const contents = await readFile(tempPath);
+            const blob = new Blob([contents], { type: 'audio/wav' });
+            const url = URL.createObjectURL(blob);
+            setAudioUrl(url);
+        } catch (err) {
+            console.error("Failed to read audio file for playback:", err);
+            // Fallback to asset protocol if reading fails
+            const url = convertFileSrc(tempPath);
+            setAudioUrl(`${url}?t=${Date.now()}`);
+        }
+        
+        nativeAudioPathRef.current = tempPath;
         setStep("evaluating");
 
         try {
-            const arrayBuffer = await blob.arrayBuffer();
-            const bytes = Array.from(new Uint8Array(arrayBuffer));
-            setWavBytes(bytes);
-            const tempPath = await invoke<string>("save_temp_audio", { bytes });
+            // We no longer need to invoke save_temp_audio because the rust native recorder 
+            // already saved it to an optimized temp path.
+            
+            // Wait a brief moment to ensure wav file is fully written/flushed to disk
+            await new Promise(r => setTimeout(r, 500));
 
-            const words = await invoke<WordTimestamp[]>("transcribe_audio", { path: tempPath });
+            const words = await invoke<WordTimestamp[]>("transcribe_audio", { path: tempPath, prompt: referenceText });
             if (!isMounted.current) return;
 
             const transcribed = words.length > 0 ? words.map(w => w.word).join(" ") : "";
@@ -181,6 +230,11 @@ export function SpeakingView() {
 
             const finalScore = computeBasicScore(referenceText, transcribed);
             setStep("result");
+
+            // Switch back to playback mode for HTML5 audio playback on iOS
+            if (/iPhone|iPad|iPod/.test(navigator.userAgent)) {
+                invoke("configure_playback").catch(() => {});
+            }
 
             // --- Persistence Logic (Build 77) ---
             let archivedPath: string | null = null;
@@ -227,20 +281,24 @@ export function SpeakingView() {
         setDiffTokens([]);
         setScore(null);
         setAudioUrl(null);
-        setWavBytes(null);
+        nativeAudioPathRef.current = null;
         setTranscribedText("");
         setRecordingSecs(0);
+        // Switch back to play+record mode for a new recording session on iOS
+        if (/iPhone|iPad|iPod/.test(navigator.userAgent)) {
+            invoke("configure_play_and_record").catch(() => { });
+        }
     }, [audioUrl]);
 
     const handleSaveRecording = useCallback(async () => {
-        if (!wavBytes) return;
+        if (!nativeAudioPathRef.current) return;
         try {
-            await invoke("save_recording_as", { bytes: wavBytes });
-            toastSuccess(t("common.success"));
+            await invoke("save_recording_as", { sourcePath: nativeAudioPathRef.current });
+            toastSuccess(t("speaking.saveSuccess"));
         } catch (e) {
-            toastError(String(e));
+            toastError(t("speaking.saveFail", { error: String(e) }));
         }
-    }, [wavBytes, t, toastError, toastSuccess]);
+    }, [t, toastSuccess, toastError]);
 
     const handleAdjustRefTime = async (field: 'start' | 'end', deltaSecs: number) => {
         if (refMeta.audio_path === null || refMeta.start_ms === null || refMeta.end_ms === null) return;
@@ -334,10 +392,10 @@ export function SpeakingView() {
                             </div>
                         </div>
                     ) : (
-                        <p style={{ 
-                            fontSize: "17px", 
-                            lineHeight: 1.8, 
-                            color: "var(--text-primary)", 
+                        <p style={{
+                            fontSize: "17px",
+                            lineHeight: 1.8,
+                            color: "var(--text-primary)",
                             fontWeight: 500,
                             wordBreak: "break-word",
                             overflowWrap: "break-word",
@@ -551,7 +609,7 @@ export function SpeakingView() {
                                 <button className="btn btn-primary" onClick={reset} style={{ padding: "12px 40px", borderRadius: "32px" }}>
                                     {t("speaking.tryAgain")}
                                 </button>
-                                {wavBytes && (
+                                {audioUrl && (
                                     <button className="btn btn-ghost" onClick={handleSaveRecording} style={{ padding: "12px 28px", borderRadius: "32px" }}>
                                         {t("speaking.saveRecording")}
                                     </button>

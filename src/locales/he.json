@@ -1,4 +1,4 @@
-{
+﻿{
     "nav": {
         "library": "ספרייה",
         "workspace": "לימוד",
@@ -81,6 +81,8 @@
         "extra": "🟠 עודף",
         "tryAgain": "🔄 נסה שוב",
         "saveRecording": "💾 שמור",
+        "saveSuccess": "ההקלטה נשמרה",
+        "saveFail": "שגיאת שמירה: {{error}}",
         "tip": "💡 טיפ: הבן את המשפט וקרא בקול טבעי.",
         "readyPrompt": "מוכן? לחץ וקרא.",
         "micError": "שגיאת מיקרופון: {{error}}",
